@@ -54,8 +54,7 @@ export default function OnboardingPage() {
   const [bio, setBio] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const { updateProfile, user, isUpdating } = useAuth()
-  const router = useRouter()
-
+  
   // Initialize state from existing profile if available
   useEffect(() => {
     if (user?.profile) {
@@ -127,8 +126,8 @@ export default function OnboardingPage() {
       >
         <Card className="bg-white/70 backdrop-blur-md border-white/50 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl font-handwriting text-center">Welcome to MindSync</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-2xl font-bold text-black text-center">Welcome to MindSync</CardTitle>
+            <CardDescription className="text-center text-black">
               Let's set up your profile to help you connect with like-minded individuals
             </CardDescription>
             <Progress value={progress} className="h-2 mt-4" />
@@ -136,8 +135,8 @@ export default function OnboardingPage() {
           <CardContent>
             {step === 1 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h3 className="text-lg font-medium">Select your interests</h3>
-                <p className="text-sm text-gray-500">Choose at least 3 topics you're interested in discussing</p>
+                <h3 className="text-lg font-medium text-black">Select your interests</h3>
+                <p className="text-sm text-black">Choose at least 3 topics you're interested in discussing</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
                   {interests.map((interest) => (
                     <div
@@ -153,7 +152,7 @@ export default function OnboardingPage() {
                         checked={selectedInterests.includes(interest)}
                         className="data-[state=checked]:bg-white data-[state=checked]:text-black"
                       />
-                      <span>{interest}</span>
+                      <span className={selectedInterests.includes(interest) ? "text-white" : "text-black"}>{interest}</span>
                     </div>
                   ))}
                 </div>
@@ -162,8 +161,8 @@ export default function OnboardingPage() {
 
             {step === 2 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h3 className="text-lg font-medium">How would you describe yourself?</h3>
-                <p className="text-sm text-gray-500">Select traits that best represent your personality</p>
+                <h3 className="text-lg font-medium text-black">How would you describe yourself?</h3>
+                <p className="text-sm text-black">Select traits that best represent your personality</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
                   {personalityTraits.map((trait) => (
                     <div
@@ -179,7 +178,7 @@ export default function OnboardingPage() {
                         checked={selectedTraits.includes(trait)}
                         className="data-[state=checked]:bg-white data-[state=checked]:text-black"
                       />
-                      <span>{trait}</span>
+                      <span className={selectedTraits.includes(trait) ? "text-white" : "text-black"}>{trait}</span>
                     </div>
                   ))}
                 </div>
@@ -188,18 +187,18 @@ export default function OnboardingPage() {
 
             {step === 3 && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                <h3 className="text-lg font-medium">Tell us about yourself</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="text-lg font-medium text-black">Tell us about yourself</h3>
+                <p className="text-sm text-black">
                   Share a brief bio to help others get to know you better (optional)
                 </p>
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio" className="text-black">Bio</Label>
                   <Textarea
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="I'm passionate about..."
-                    className="h-32 bg-white/70"
+                    className="h-32 bg-white/70 text-black"
                   />
                 </div>
               </motion.div>

@@ -11,15 +11,16 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
 import { Loader2 } from "lucide-react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import Link from "next/link"
 
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
-  bgColor: string
 }
 
-export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState("login")
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
@@ -27,11 +28,10 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const { login, register, isLoading, user } = useAuth()
-  console.log(isLoading)
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [agreeTerms, setAgreeTerms] = useState(false)
+  const { login, register, isLoading } = useAuth()
   const router = useRouter()
-
-  // Determine the color family to apply appropriate styling
-  const colorFamily = bgColor.split("-")[0]
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,6 +50,14 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (registerPassword !== confirmPassword) {
+      // Handle password mismatch
+      return
+    }
+    if (!agreeTerms) {
+      // Handle terms not agreed
+      return
+    }
     try {
       const { error } = await register(registerName, registerEmail, registerPassword)
       if (error) {
@@ -66,34 +74,29 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
+        <DialogTitle className="sr-only">Authentication</DialogTitle>
         <motion.div
-          className={`w-full rounded-lg bg-white/40 backdrop-blur-md p-8 
+          className="w-full rounded-lg bg-primary-dark border-primary/30 p-8 
           shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)] 
-          border border-white/50 relative overflow-hidden`}
-          style={{
-            boxShadow: `0 15px 30px rgba(0,0,0,0.1), 0 0 15px rgba(255,255,255,0.5)`,
-          }}
+          border relative overflow-hidden"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Subtle glow effect in the background */}
-          <div className={`absolute -inset-1 opacity-20 blur-xl bg-${colorFamily}-300 z-0`}></div>
-
           <div className="relative z-10">
-            <h2 className="mb-6 text-2xl font-semibold text-center text-gray-800 font-handwriting">mindsync</h2>
+            <h2 className="mb-6 text-2xl font-bold text-center text-white">mindsync</h2>
 
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-primary-medium">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary text-white">Login</TabsTrigger>
+                <TabsTrigger value="register" className="data-[state=active]:bg-primary text-white">Register</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
                 <form className="space-y-4" onSubmit={handleLogin}>
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-700">
+                    <Label htmlFor="email" className="text-white">
                       Email
                     </Label>
                     <Input
@@ -101,13 +104,13 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder="name@example.com"
                       required
-                      className="bg-white/70 border-white/60 focus:border-white"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-gray-700">
+                    <Label htmlFor="password" className="text-white">
                       Password
                     </Label>
                     <Input
@@ -115,17 +118,21 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       type="password"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Enter your password"
+                      placeholder="••••••••"
                       required
-                      className="bg-white/70 border-white/60 focus:border-white"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="flex justify-end">
-                    <a href="#" className="text-sm text-gray-600 hover:underline">
+                    <Link href="/forgot-password" className="text-sm text-white/80 hover:text-white hover:underline">
                       Forgot password?
-                    </a>
+                    </Link>
                   </div>
-                  <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Log In
                   </Button>
@@ -135,7 +142,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
               <TabsContent value="register">
                 <form className="space-y-4" onSubmit={handleRegister}>
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-700">
+                    <Label htmlFor="name" className="text-white">
                       Full Name
                     </Label>
                     <Input
@@ -143,13 +150,13 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       type="text"
                       value={registerName}
                       onChange={(e) => setRegisterName(e.target.value)}
-                      placeholder="Enter your full name"
+                      placeholder="John Doe"
                       required
-                      className="bg-white/70 border-white/60 focus:border-white"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-email" className="text-gray-700">
+                    <Label htmlFor="register-email" className="text-white">
                       Email
                     </Label>
                     <Input
@@ -157,13 +164,13 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       type="email"
                       value={registerEmail}
                       onChange={(e) => setRegisterEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder="name@example.com"
                       required
-                      className="bg-white/70 border-white/60 focus:border-white"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="register-password" className="text-gray-700">
+                    <Label htmlFor="register-password" className="text-white">
                       Password
                     </Label>
                     <Input
@@ -171,21 +178,59 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       type="password"
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
-                      placeholder="Create a password"
+                      placeholder="••••••••"
                       required
-                      className="bg-white/70 border-white/60 focus:border-white"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-white">
+                      Confirm Password
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                    />
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="terms"
+                      checked={agreeTerms}
+                      onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
+                      className="border-primary/30 data-[state=checked]:bg-primary data-[state=checked]:text-white"
+                    />
+                    <Label
+                      htmlFor="terms"
+                      className="text-sm font-normal text-white/80 leading-tight"
+                    >
+                      I agree to the{" "}
+                      <Link href="/terms" className="underline hover:text-white">
+                        terms and conditions
+                      </Link>
+                    </Label>
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
+                    disabled={isLoading}
+                  >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Create Account
                   </Button>
-                  <p className="text-xs text-center text-gray-600">
-                    By signing up, you agree to our Terms of Service and Privacy Policy
-                  </p>
                 </form>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Background blur elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
           </div>
         </motion.div>
       </DialogContent>
