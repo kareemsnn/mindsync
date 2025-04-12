@@ -21,7 +21,7 @@ interface AuthModalProps {
   bgColor?: string
 }
 
-export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState("login")
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")

@@ -1,5 +1,4 @@
 "use client"
-
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -35,7 +34,6 @@ export default function Navbar() {
   // Extract user display name from email if available
   const displayName = user?.profile?.email?.split('@')[0] || user?.email?.split('@')[0] || 'User'
   const userInitial = displayName.charAt(0).toUpperCase()
-
   return (
     <nav className="border-b bg-background px-4 py-3">
       <div className="container mx-auto flex items-center justify-between">
@@ -44,7 +42,6 @@ export default function Navbar() {
             mindsync
           </Link>
         </div>
-
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
@@ -61,14 +58,12 @@ export default function Navbar() {
               <span className="sr-only">Notifications</span>
             </Link>
           </Button>
-
           <Button variant="ghost" size="icon" asChild>
             <Link href="/chats">
               <MessageSquare className="h-5 w-5" />
               <span className="sr-only">Messages</span>
             </Link>
           </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
