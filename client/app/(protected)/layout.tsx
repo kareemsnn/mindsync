@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
+import Navbar from "@/components/navbar"
 import Sidebar from "@/components/sidebar"
 import Loading from "./loading"
 
