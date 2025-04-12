@@ -40,7 +40,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user?.name}! Here's what's happening this week.</p>
+          <p className="text-muted-foreground">Welcome back, {user?.profile?.email?.split('@')[0]}! Here's what's happening this week.</p>
         </div>
         <div className="flex items-center gap-2">
           <Clock className="h-5 w-5 text-muted-foreground" />

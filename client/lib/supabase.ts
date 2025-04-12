@@ -19,6 +19,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
   },
   global: {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
     fetch: fetch.bind(globalThis),
   },
   db: {
