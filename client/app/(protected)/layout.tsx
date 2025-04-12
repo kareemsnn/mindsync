@@ -8,7 +8,6 @@ import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import Navbar from "@/components/navbar"
 import Sidebar from "@/components/sidebar"
-import { Loader2 } from "lucide-react"
 import Loading from "./loading"
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -33,7 +32,15 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     }
     
     const isOnboardingRoute = pathname.includes("/onboarding");
-    const isUserOnboarded = user.profile?.is_onboarded;
+    const isUserOnboarded = Boolean(user.profile.is_onboarded);
+    
+    // Debug logging
+    console.log('Route check:', { 
+      isOnboardingRoute, 
+      isUserOnboarded, 
+      path: pathname,
+      profile: user.profile
+    });
     
     // Redirect based on onboarding status
     if (isUserOnboarded && isOnboardingRoute) {

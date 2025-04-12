@@ -1,7 +1,8 @@
 "use client"
 
-import { useAuth } from "@/contexts/auth-context"
-import { Bell, MessageSquare, Settings, User } from "lucide-react"
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,8 +14,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useRouter } from "next/navigation"
+import { Bell, MessageSquare, Settings, User } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
+// Protected dashboard navbar
 export default function Navbar() {
   const { user, logout } = useAuth()
   const router = useRouter()
