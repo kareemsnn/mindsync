@@ -27,6 +27,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   const { login, register, isLoading, user } = useAuth()
+  console.log(isLoading)
   const router = useRouter()
 
   // Determine the color family to apply appropriate styling
@@ -35,9 +36,13 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await login(loginEmail, loginPassword)
+      const { error } = await login(loginEmail, loginPassword)
+      if (error) {
+        console.error("Login failed:", error)
+        return
+      }
       onClose()
-      router.push(user?.onboardingComplete ? "/dashboard" : "/onboarding")
+      router.push(user?.profile?.is_onboarded ? "/dashboard" : "/onboarding")
     } catch (error) {
       console.error("Login failed:", error)
     }
@@ -46,7 +51,11 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await register(registerName, registerEmail, registerPassword)
+      const { error } = await register(registerName, registerEmail, registerPassword)
+      if (error) {
+        console.error("Registration failed:", error)
+        return
+      }
       onClose()
       router.push("/onboarding")
     } catch (error) {

@@ -7,18 +7,17 @@ import { Tables } from "@/database.types"
 
 type UserProfile = Tables<"profiles">
 
-type UserData = {
+type AuthUser = {
   id: string
   email: string | undefined
-  name: string | undefined
-  avatar?: string
   profile: UserProfile | null
 }
 
 type AuthContextType = {
-  user: UserData | null
+  user: AuthUser | null
   session: Session | null
   isLoading: boolean
+  isUpdating: boolean
   login: (email: string, password: string) => Promise<{ error: Error | null }>
   register: (name: string, email: string, password: string) => Promise<{ error: Error | null }>
   logout: () => Promise<void>
@@ -27,29 +26,44 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+
+/* 
+  AuthProvider is a component that provides the auth context to the app.
+  It is used to wrap the app in a provider so that the auth context is available to all components.
+*/
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true)
-      
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      setSession(currentSession)
-      
-      if (currentSession?.user) {
-        await refreshUserData(currentSession.user)
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        setSession(currentSession)
+        
+        if (currentSession?.user) {
+          await refreshUserData(currentSession.user)
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
 
       const { data: { subscription } } = await supabase.auth.onAuthStateChange(
         async (event, newSession) => {
           setSession(newSession)
           
           if (event === 'SIGNED_IN' && newSession?.user) {
-            await refreshUserData(newSession.user)
+            setIsLoading(true)
+            try {
+              await refreshUserData(newSession.user)
+            } finally {
+              setIsLoading(false)
+            }
           } else if (event === 'SIGNED_OUT') {
             setUser(null)
           }
@@ -64,56 +78,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth()
   }, [])
   
-  // Function to fetch user profile data from the profiles table
+  /* 
+    refreshUserData is a function that fetches the user's profile data from the profiles table.
+    It is used to refresh the user's data when the user is signed in.
+  */
   const refreshUserData = async (supabaseUser: SupabaseUser) => {
     try {
-      // Fetch user profile from public.profiles
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', supabaseUser.id)
-        .single()
+        .maybeSingle()
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user profile:', error)
+        return
       }
       
-      // Create user data object combining auth and profile data
+      // If no profile found but user exists, create a default profile
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: supabaseUser.id,
+            email: supabaseUser.email
+          })
+        
+        if (insertError) {
+          console.error('Error creating default profile:', insertError)
+        } else {
+          // Fetch the newly created profile
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', supabaseUser.id)
+            .maybeSingle()
+          
+          setUser({
+            id: supabaseUser.id,
+            email: supabaseUser.email,
+            profile: newProfile || null,
+          })
+          return
+        }
+      }
+      
       setUser({
         id: supabaseUser.id,
         email: supabaseUser.email,
-        name: profile?.email?.split('@')[0] || supabaseUser.email?.split('@')[0] || 'User',
-        avatar: profile?.image_url || undefined,
-        profile: profile || null
+        profile: profile || null,
       })
     } catch (error) {
       console.error('Error refreshing user data:', error)
     }
   }
 
+  /* 
+    login is a function that logs the user in using the supabase auth service.
+  */
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     
     try {
-      // Sign in to Supabase auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
       
       if (error) {
+        console.error('Auth signin error:', error)
         return { error }
       }
       
-      // Check if profile exists for this user
-      const { data: profile, error: profileError } = await supabase
+      // Check if profile exists
+      const { data: profile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', data.user.id)
-        .single()
+        .maybeSingle()
       
-      // If no profile exists, create one
-      if (profileError && profileError.code === 'PGRST116') {
+      // Create profile if it doesn't exist
+      if (!profile && !fetchError) {
         const { error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -124,6 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (insertError) {
           console.error('Error creating profile on login:', insertError)
         }
+      } else if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error checking for profile on login:', fetchError)
       }
       
       return { error: null }
@@ -135,11 +182,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /* 
+    register is a function that registers a new user using the supabase auth service.
+  */
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     
     try {
-      // Step 1: Create the user in auth.users
+      // First sign up the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -151,6 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       
       if (error) {
+        console.error('Auth signup error:', error)
         return { error }
       }
       
@@ -158,18 +209,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('User creation failed') }
       }
       
-      // Step 2: Create a profile in public.profiles
-      const { error: profileError } = await supabase
+      // Check if profile already exists to avoid duplicate creation
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: data.user.id,
-          email: email
-        })
+        .select('*')
+        .eq('user_id', data.user.id)
+        .maybeSingle()
       
-      if (profileError) {
-        console.error('Error creating profile during registration:', profileError)
-        // Consider handling this error - possibly delete the auth user or notify admin
-        return { error: new Error('Profile creation failed') }
+      // Only create a profile if it doesn't exist yet and there was no network error
+      if (!existingProfile && !fetchError) {
+        // Create the profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: data.user.id,
+            email: email
+          })
+        
+        if (profileError) {
+          console.error('Error creating profile during registration:', profileError)
+          return { error: new Error('Profile creation failed') }
+        }
+      } else if (fetchError && fetchError.code !== 'PGRST116') {
+        // Log other fetch errors that aren't just "no rows returned"
+        console.error('Error checking for existing profile:', fetchError)
       }
       
       return { error: null }
@@ -181,12 +244,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  /* 
+    logout is a function that logs the user out using the supabase auth service.
+  */
   const logout = async () => {
-    await supabase.auth.signOut()
+    setIsLoading(true)
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setSession(null)
+    } catch (error) {
+      console.error('Error during logout:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
-  
+
+  /* 
+    updateProfile is a function that updates the user's profile data in the profiles table.
+  */
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user?.id) return
+    
+    setIsUpdating(true)
     
     try {
       const { error } = await supabase
@@ -199,12 +279,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       
-      // Refresh user data
       if (session?.user) {
         await refreshUserData(session.user)
       }
     } catch (error) {
       console.error('Error updating profile:', error)
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -213,7 +294,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{ 
         user, 
         session,
-        isLoading, 
+        isLoading,
+        isUpdating,
         login, 
         register, 
         logout, 
