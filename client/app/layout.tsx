@@ -1,8 +1,8 @@
 "use client"
+import "./globals.css"
 
 import type React from "react"
 import { Inter, Caveat } from "next/font/google"
-import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/contexts/auth-context"
 
@@ -28,6 +28,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-import './globals.css'
