@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
 import { Loader2 } from "lucide-react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 
@@ -69,6 +69,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
+        <DialogTitle className="sr-only">Authentication</DialogTitle>
         <motion.div
           className={`w-full rounded-lg bg-white/10 backdrop-blur-md p-8 
           shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)] 
