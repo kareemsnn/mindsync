@@ -1,0 +1,324 @@
+2025-04-12 14:57:13,031 - INFO - Random seeds set to 42
+2025-04-12 14:57:13,031 - INFO - Random seeds set to 42
+2025-04-12 14:57:13,031 - INFO - Random seeds set to 42
+2025-04-12 14:57:13,031 - INFO - Random seeds set to 42
+2025-04-12 14:57:13,031 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 14:57:13,031 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 14:57:13,031 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 14:57:13,031 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 14:57:16,627 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 14:57:16,628 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 14:57:16,922 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 14:57:17,550 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 14:58:26,367 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 14:58:26,389 - INFO - Loading embeddings from CSV...
+2025-04-12 14:58:26,404 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 14:58:26,425 - INFO - Loading embeddings from CSV...
+2025-04-12 14:58:26,426 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 14:58:26,448 - INFO - Loading embeddings from CSV...
+2025-04-12 14:58:26,515 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 14:58:26,538 - INFO - Loading embeddings from CSV...
+2025-04-12 14:58:27,568 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,571 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,571 - INFO - Building KNN graph...
+2025-04-12 14:58:27,573 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,580 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,580 - INFO - Building KNN graph...
+2025-04-12 14:58:27,591 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,597 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,598 - INFO - Building KNN graph...
+2025-04-12 14:58:27,671 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,675 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 14:58:27,675 - INFO - Building KNN graph...
+2025-04-12 14:58:27,907 - INFO - KNN graph built.
+2025-04-12 14:58:27,907 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 14:58:27,908 - INFO - KNN graph built.
+2025-04-12 14:58:27,908 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 14:58:27,909 - INFO - KNN graph built.
+2025-04-12 14:58:27,909 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 14:58:27,919 - INFO - Data object created.
+2025-04-12 14:58:27,919 - INFO - Data object created.
+2025-04-12 14:58:27,920 - INFO - Data object created.
+2025-04-12 14:58:27,981 - INFO - KNN graph built.
+2025-04-12 14:58:27,981 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 14:58:27,993 - INFO - Data object created.
+2025-04-12 14:58:28,130 - INFO - Beginning training loop...
+2025-04-12 14:58:28,130 - INFO - Starting GNN training...
+2025-04-12 14:58:28,131 - INFO - Beginning training loop...
+2025-04-12 14:58:28,132 - INFO - Starting GNN training...
+2025-04-12 14:58:28,133 - INFO - Beginning training loop...
+2025-04-12 14:58:28,133 - INFO - Starting GNN training...
+2025-04-12 14:58:28,183 - INFO - Beginning training loop...
+2025-04-12 14:58:28,183 - INFO - Starting GNN training...
+2025-04-12 14:58:28,504 - INFO - Epoch 1, Loss: 5.2693
+2025-04-12 14:58:28,504 - INFO - Epoch 1, Loss: 5.2693
+2025-04-12 14:58:28,504 - INFO - Epoch 1, Loss: 5.2693
+2025-04-12 14:58:28,504 - INFO - Epoch 1, Loss: 5.2693
+2025-04-12 14:58:29,121 - INFO - Epoch 11, Loss: 5.2103
+2025-04-12 14:58:29,123 - INFO - Epoch 11, Loss: 5.2103
+2025-04-12 14:58:29,124 - INFO - Epoch 11, Loss: 5.2103
+2025-04-12 14:58:29,131 - INFO - Epoch 11, Loss: 5.2103
+2025-04-12 14:58:29,717 - INFO - Epoch 21, Loss: 4.8423
+2025-04-12 14:58:29,718 - INFO - Epoch 21, Loss: 4.8718
+2025-04-12 14:58:29,719 - INFO - Epoch 21, Loss: 4.8648
+2025-04-12 14:58:29,728 - INFO - Epoch 21, Loss: 4.8515
+2025-04-12 14:58:30,312 - INFO - Epoch 31, Loss: 4.6990
+2025-04-12 14:58:30,313 - INFO - Epoch 31, Loss: 4.6850
+2025-04-12 14:58:30,317 - INFO - Epoch 31, Loss: 4.6871
+2025-04-12 14:58:30,325 - INFO - Epoch 31, Loss: 4.6931
+2025-04-12 14:58:30,905 - INFO - Epoch 41, Loss: 4.5785
+2025-04-12 14:58:30,908 - INFO - Epoch 41, Loss: 4.5954
+2025-04-12 14:58:30,913 - INFO - Epoch 41, Loss: 4.5861
+2025-04-12 14:58:30,923 - INFO - Epoch 41, Loss: 4.5941
+2025-04-12 14:58:31,500 - INFO - Epoch 51, Loss: 4.4980
+2025-04-12 14:58:31,504 - INFO - Epoch 51, Loss: 4.4997
+2025-04-12 14:58:31,512 - INFO - Epoch 51, Loss: 4.4921
+2025-04-12 14:58:31,520 - INFO - Epoch 51, Loss: 4.4934
+2025-04-12 14:58:32,095 - INFO - Epoch 61, Loss: 4.4382
+2025-04-12 14:58:32,099 - INFO - Epoch 61, Loss: 4.4456
+2025-04-12 14:58:32,111 - INFO - Epoch 61, Loss: 4.4511
+2025-04-12 14:58:32,117 - INFO - Epoch 61, Loss: 4.4378
+2025-04-12 14:58:32,689 - INFO - Epoch 71, Loss: 4.4125
+2025-04-12 14:58:32,695 - INFO - Epoch 71, Loss: 4.4202
+2025-04-12 14:58:32,708 - INFO - Epoch 71, Loss: 4.4180
+2025-04-12 14:58:32,713 - INFO - Epoch 71, Loss: 4.4173
+2025-04-12 14:58:33,285 - INFO - Epoch 81, Loss: 4.3839
+2025-04-12 14:58:33,292 - INFO - Epoch 81, Loss: 4.3955
+2025-04-12 14:58:33,308 - INFO - Epoch 81, Loss: 4.3920
+2025-04-12 14:58:33,310 - INFO - Epoch 81, Loss: 4.3860
+2025-04-12 14:58:33,878 - INFO - Epoch 91, Loss: 4.3389
+2025-04-12 14:58:33,887 - INFO - Epoch 91, Loss: 4.3544
+2025-04-12 14:58:33,907 - INFO - Epoch 91, Loss: 4.3417
+2025-04-12 14:58:33,907 - INFO - Epoch 91, Loss: 4.3484
+2025-04-12 14:58:34,414 - INFO - GNN training complete.
+2025-04-12 14:58:34,414 - INFO - Best training loss: 4.3215
+2025-04-12 14:58:34,424 - INFO - GNN training complete.
+2025-04-12 14:58:34,424 - INFO - Best training loss: 4.3249
+2025-04-12 14:58:34,444 - INFO - GNN training complete.
+2025-04-12 14:58:34,445 - INFO - Best training loss: 4.3205
+2025-04-12 14:58:34,448 - INFO - GNN training complete.
+2025-04-12 14:58:34,448 - INFO - Best training loss: 4.3235
+2025-04-12 14:58:34,787 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 14:58:34,807 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 14:58:34,899 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 14:58:34,899 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 14:58:34,899 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 14:58:34,918 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 14:58:34,918 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 14:58:34,919 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:06:50,269 - INFO - Random seeds set to 42
+2025-04-12 15:06:50,269 - INFO - Random seeds set to 42
+2025-04-12 15:06:50,269 - INFO - Random seeds set to 42
+2025-04-12 15:06:50,270 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:06:50,270 - INFO - Random seeds set to 42
+2025-04-12 15:06:50,270 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:06:50,270 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:06:50,270 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:06:51,860 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:06:51,868 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:06:51,912 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:06:51,925 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:07:45,449 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:07:45,475 - INFO - Loading embeddings from CSV...
+2025-04-12 15:07:45,541 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:07:45,563 - INFO - Loading embeddings from CSV...
+2025-04-12 15:07:45,610 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:07:45,632 - INFO - Loading embeddings from CSV...
+2025-04-12 15:07:45,724 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:07:45,747 - INFO - Loading embeddings from CSV...
+2025-04-12 15:07:46,657 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,660 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,660 - INFO - Building KNN graph...
+2025-04-12 15:07:46,707 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,710 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,711 - INFO - Building KNN graph...
+2025-04-12 15:07:46,761 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,765 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,765 - INFO - Building KNN graph...
+2025-04-12 15:07:46,877 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,880 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:07:46,881 - INFO - Building KNN graph...
+2025-04-12 15:07:46,960 - INFO - KNN graph built.
+2025-04-12 15:07:46,960 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:07:46,972 - INFO - Data object created.
+2025-04-12 15:07:47,010 - INFO - KNN graph built.
+2025-04-12 15:07:47,011 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:07:47,022 - INFO - Data object created.
+2025-04-12 15:07:47,067 - INFO - KNN graph built.
+2025-04-12 15:07:47,067 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:07:47,079 - INFO - Data object created.
+2025-04-12 15:07:47,184 - INFO - KNN graph built.
+2025-04-12 15:07:47,184 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:07:47,195 - INFO - Data object created.
+2025-04-12 15:07:47,441 - INFO - Beginning training loop...
+2025-04-12 15:07:47,441 - INFO - Starting GNN training...
+2025-04-12 15:07:47,488 - INFO - Beginning training loop...
+2025-04-12 15:07:47,488 - INFO - Starting GNN training...
+2025-04-12 15:07:47,541 - INFO - Beginning training loop...
+2025-04-12 15:07:47,541 - INFO - Starting GNN training...
+2025-04-12 15:07:47,613 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:07:47,652 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:07:47,656 - INFO - Beginning training loop...
+2025-04-12 15:07:47,656 - INFO - Starting GNN training...
+2025-04-12 15:07:47,715 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:07:47,824 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:07:49,155 - INFO - Epoch 11, Loss: 5.1027
+2025-04-12 15:07:49,181 - INFO - Epoch 11, Loss: 5.0881
+2025-04-12 15:07:49,250 - INFO - Epoch 11, Loss: 5.1369
+2025-04-12 15:07:49,365 - INFO - Epoch 11, Loss: 5.2470
+2025-04-12 15:07:50,676 - INFO - Epoch 21, Loss: 5.0252
+2025-04-12 15:07:50,705 - INFO - Epoch 21, Loss: 4.9965
+2025-04-12 15:07:50,777 - INFO - Epoch 21, Loss: 5.0739
+2025-04-12 15:07:50,901 - INFO - Epoch 21, Loss: 5.0360
+2025-04-12 15:07:52,196 - INFO - Epoch 31, Loss: 5.0422
+2025-04-12 15:07:52,233 - INFO - Epoch 31, Loss: 4.8853
+2025-04-12 15:07:52,304 - INFO - Epoch 31, Loss: 5.0008
+2025-04-12 15:07:52,435 - INFO - Epoch 31, Loss: 5.0810
+2025-04-12 15:07:53,719 - INFO - Epoch 41, Loss: 4.9540
+2025-04-12 15:07:53,761 - INFO - Epoch 41, Loss: 4.8648
+2025-04-12 15:07:53,830 - INFO - Epoch 41, Loss: 4.9398
+2025-04-12 15:07:53,966 - INFO - Epoch 41, Loss: 4.9982
+2025-04-12 15:07:55,243 - INFO - Epoch 51, Loss: 4.8957
+2025-04-12 15:07:55,289 - INFO - Epoch 51, Loss: 4.8513
+2025-04-12 15:07:55,358 - INFO - Epoch 51, Loss: 4.8408
+2025-04-12 15:07:55,500 - INFO - Epoch 51, Loss: 4.9662
+2025-04-12 15:07:56,768 - INFO - Epoch 61, Loss: 4.8561
+2025-04-12 15:07:56,818 - INFO - Epoch 61, Loss: 4.8310
+2025-04-12 15:07:56,891 - INFO - Epoch 61, Loss: 4.8260
+2025-04-12 15:07:57,037 - INFO - Epoch 61, Loss: 4.9593
+2025-04-12 15:07:58,297 - INFO - Epoch 71, Loss: 4.8467
+2025-04-12 15:07:58,346 - INFO - Epoch 71, Loss: 4.8627
+2025-04-12 15:07:58,421 - INFO - Epoch 71, Loss: 4.8122
+2025-04-12 15:07:58,571 - INFO - Epoch 71, Loss: 4.9258
+2025-04-12 15:07:59,820 - INFO - Epoch 81, Loss: 4.8352
+2025-04-12 15:07:59,876 - INFO - Epoch 81, Loss: 4.8486
+2025-04-12 15:07:59,952 - INFO - Epoch 81, Loss: 4.8040
+2025-04-12 15:08:00,107 - INFO - Epoch 81, Loss: 4.9181
+2025-04-12 15:08:01,347 - INFO - Epoch 91, Loss: 4.8443
+2025-04-12 15:08:01,401 - INFO - Epoch 91, Loss: 4.8302
+2025-04-12 15:08:01,483 - INFO - Epoch 91, Loss: 4.8498
+2025-04-12 15:08:01,641 - INFO - Epoch 91, Loss: 5.1734
+2025-04-12 15:08:02,724 - INFO - GNN training complete.
+2025-04-12 15:08:02,724 - INFO - Best training loss: 4.8181
+2025-04-12 15:08:02,777 - INFO - GNN training complete.
+2025-04-12 15:08:02,777 - INFO - Best training loss: 4.8289
+2025-04-12 15:08:02,859 - INFO - GNN training complete.
+2025-04-12 15:08:02,860 - INFO - Best training loss: 4.7873
+2025-04-12 15:08:03,024 - INFO - GNN training complete.
+2025-04-12 15:08:03,025 - INFO - Best training loss: 4.8920
+2025-04-12 15:08:04,115 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:08:04,173 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:08:04,464 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:08:04,464 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:08:04,464 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:08:04,524 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:08:04,524 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:08:04,524 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:11:12,877 - INFO - Random seeds set to 42
+2025-04-12 15:11:12,877 - INFO - Random seeds set to 42
+2025-04-12 15:11:12,877 - INFO - Random seeds set to 42
+2025-04-12 15:11:12,877 - INFO - Random seeds set to 42
+2025-04-12 15:11:12,877 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:11:12,877 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:11:12,877 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:11:12,877 - INFO - Loading dataset 'jingjietan/essays-big5'...
+2025-04-12 15:11:14,467 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:11:14,541 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:11:14,976 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:11:15,109 - INFO - Generating embeddings with SentenceTransformer (all-mpnet-base-v2)...
+2025-04-12 15:12:08,009 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:12:08,009 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:12:08,031 - INFO - Loading embeddings from CSV...
+2025-04-12 15:12:08,031 - INFO - Loading embeddings from CSV...
+2025-04-12 15:12:08,168 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:12:08,190 - INFO - Loading embeddings from CSV...
+2025-04-12 15:12:08,204 - INFO - Embeddings saved to user_embeddings.csv.
+2025-04-12 15:12:08,226 - INFO - Loading embeddings from CSV...
+2025-04-12 15:12:09,164 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,164 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,167 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,167 - INFO - Building KNN graph...
+2025-04-12 15:12:09,168 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,168 - INFO - Building KNN graph...
+2025-04-12 15:12:09,324 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,328 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,328 - INFO - Building KNN graph...
+2025-04-12 15:12:09,370 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,374 - INFO - Loaded embeddings for 2467 users.
+2025-04-12 15:12:09,374 - INFO - Building KNN graph...
+2025-04-12 15:12:09,471 - INFO - KNN graph built.
+2025-04-12 15:12:09,472 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:12:09,472 - INFO - KNN graph built.
+2025-04-12 15:12:09,472 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:12:09,483 - INFO - Data object created.
+2025-04-12 15:12:09,483 - INFO - Data object created.
+2025-04-12 15:12:09,629 - INFO - KNN graph built.
+2025-04-12 15:12:09,629 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:12:09,640 - INFO - Data object created.
+2025-04-12 15:12:09,673 - INFO - KNN graph built.
+2025-04-12 15:12:09,673 - INFO - Creating PyTorch Geometric Data object...
+2025-04-12 15:12:09,684 - INFO - Data object created.
+2025-04-12 15:12:09,955 - INFO - Beginning training loop...
+2025-04-12 15:12:09,955 - INFO - Beginning training loop...
+2025-04-12 15:12:09,955 - INFO - Starting GNN training...
+2025-04-12 15:12:09,955 - INFO - Starting GNN training...
+2025-04-12 15:12:10,103 - INFO - Beginning training loop...
+2025-04-12 15:12:10,103 - INFO - Starting GNN training...
+2025-04-12 15:12:10,123 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:12:10,126 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:12:10,144 - INFO - Beginning training loop...
+2025-04-12 15:12:10,144 - INFO - Starting GNN training...
+2025-04-12 15:12:10,272 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:12:10,318 - INFO - Epoch 1, Loss: 5.2927
+2025-04-12 15:12:11,658 - INFO - Epoch 11, Loss: 5.0845
+2025-04-12 15:12:11,666 - INFO - Epoch 11, Loss: 5.0979
+2025-04-12 15:12:11,821 - INFO - Epoch 11, Loss: 5.1044
+2025-04-12 15:12:11,859 - INFO - Epoch 11, Loss: 5.0553
+2025-04-12 15:12:13,186 - INFO - Epoch 21, Loss: 5.1020
+2025-04-12 15:12:13,189 - INFO - Epoch 21, Loss: 5.0553
+2025-04-12 15:12:13,357 - INFO - Epoch 21, Loss: 5.1172
+2025-04-12 15:12:13,385 - INFO - Epoch 21, Loss: 5.0876
+2025-04-12 15:12:14,711 - INFO - Epoch 31, Loss: 4.9621
+2025-04-12 15:12:14,712 - INFO - Epoch 31, Loss: 5.0136
+2025-04-12 15:12:14,894 - INFO - Epoch 31, Loss: 5.0760
+2025-04-12 15:12:14,913 - INFO - Epoch 31, Loss: 4.9852
+2025-04-12 15:12:16,236 - INFO - Epoch 41, Loss: 4.9423
+2025-04-12 15:12:16,236 - INFO - Epoch 41, Loss: 5.0246
+2025-04-12 15:12:16,432 - INFO - Epoch 41, Loss: 4.9792
+2025-04-12 15:12:16,442 - INFO - Epoch 41, Loss: 5.0311
+2025-04-12 15:12:17,761 - INFO - Epoch 51, Loss: 4.9328
+2025-04-12 15:12:17,763 - INFO - Epoch 51, Loss: 4.9377
+2025-04-12 15:12:17,967 - INFO - Epoch 51, Loss: 5.0098
+2025-04-12 15:12:17,969 - INFO - Epoch 51, Loss: 4.9738
+2025-04-12 15:12:19,285 - INFO - Epoch 61, Loss: 4.8917
+2025-04-12 15:12:19,289 - INFO - Epoch 61, Loss: 4.9414
+2025-04-12 15:12:19,492 - INFO - Epoch 61, Loss: 4.9632
+2025-04-12 15:12:19,501 - INFO - Epoch 61, Loss: 4.9365
+2025-04-12 15:12:20,809 - INFO - Epoch 71, Loss: 4.8973
+2025-04-12 15:12:20,817 - INFO - Epoch 71, Loss: 4.8977
+2025-04-12 15:12:21,023 - INFO - Epoch 71, Loss: 4.9557
+2025-04-12 15:12:21,038 - INFO - Epoch 71, Loss: 5.1644
+2025-04-12 15:12:22,335 - INFO - Epoch 81, Loss: 4.8912
+2025-04-12 15:12:22,345 - INFO - Epoch 81, Loss: 4.8758
+2025-04-12 15:12:22,552 - INFO - Epoch 81, Loss: 4.9356
+2025-04-12 15:12:22,574 - INFO - Epoch 81, Loss: 4.9721
+2025-04-12 15:12:23,860 - INFO - Epoch 91, Loss: 4.8675
+2025-04-12 15:12:23,873 - INFO - Epoch 91, Loss: 4.9519
+2025-04-12 15:12:24,087 - INFO - Epoch 91, Loss: 4.9309
+2025-04-12 15:12:24,112 - INFO - Epoch 91, Loss: 4.8990
+2025-04-12 15:12:25,232 - INFO - GNN training complete.
+2025-04-12 15:12:25,232 - INFO - Best training loss: 4.8498
+2025-04-12 15:12:25,249 - INFO - GNN training complete.
+2025-04-12 15:12:25,249 - INFO - Best training loss: 4.8617
+2025-04-12 15:12:25,470 - INFO - GNN training complete.
+2025-04-12 15:12:25,470 - INFO - Best training loss: 4.8920
+2025-04-12 15:12:25,496 - INFO - GNN training complete.
+2025-04-12 15:12:25,496 - INFO - Best training loss: 4.8920
+2025-04-12 15:12:26,168 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:12:26,168 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:12:26,226 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:12:26,227 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:12:27,134 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:12:27,134 - INFO - Training complete. Best model saved as trained_customGNN_best.pth
+2025-04-12 15:12:27,193 - INFO - Refined embeddings shape: torch.Size([2467, 768])
+2025-04-12 15:12:27,194 - INFO - Refined embeddings shape: torch.Size([2467, 768])
