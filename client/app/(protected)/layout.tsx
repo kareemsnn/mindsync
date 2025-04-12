@@ -5,7 +5,6 @@ import type React from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
-import Navbar from "@/components/navbar"
 import Sidebar from "@/components/sidebar"
 import { Loader2 } from "lucide-react"
 
@@ -38,7 +37,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen flex-col md:flex-row">
       <Sidebar />
       <div className="flex-1 overflow-auto">
-        <Navbar />
         <main className="container mx-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
