@@ -13,9 +13,9 @@ export default function CallToAction({ gradient = "gradient-purple-indigo" }: Ca
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   return (
-    <section id="how-it-works" className={`py-20 px-4 relative overflow-hidden scroll-mt-16 flowing-gradient ${gradient}`}>
+    <section id="how-it-works" className="py-20 px-4 relative overflow-hidden scroll-mt-16 bg-primary-gradient">
       <div className="container mx-auto relative z-10">
-        <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-lg border border-white/10">
+        <div className="max-w-4xl mx-auto bg-primary-light rounded-3xl p-8 md:p-12 shadow-lg border border-primary/20">
           <div className="text-center">
             <motion.h2
               className="text-3xl md:text-4xl font-bold mb-6 text-white"
@@ -44,7 +44,7 @@ export default function CallToAction({ gradient = "gradient-purple-indigo" }: Ca
             >
               <Button 
               onClick={() => setIsAuthModalOpen(true)}
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-8 py-6 h-auto text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-white/20">
+              className="bg-white/20 hover:bg-white/30 text-white px-8 py-6 h-auto text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-white/20">
               Join mindsync
               <ArrowRightIcon className="ml-2 h-5 w-5" />
               </Button>
@@ -55,15 +55,14 @@ export default function CallToAction({ gradient = "gradient-purple-indigo" }: Ca
 
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-purple-400/10 dark:bg-purple-600/10 rounded-full filter blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-indigo-400/10 dark:bg-indigo-600/10 rounded-full filter blur-3xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
       </div>
 
       {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-        bgColor={gradient}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </section>
   )

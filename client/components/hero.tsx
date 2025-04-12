@@ -4,15 +4,11 @@ import { ArrowRightIcon } from "lucide-react"
 import { useState } from "react"
 import AuthModal from "@/components/auth-modal"
 
-interface HeroProps {
-  gradient?: string;
-}
-
-export default function Hero({ gradient = "gradient-purple-indigo" }: HeroProps) {
+export default function Hero() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   return (
-    <section id="home" className={`pt-32 pb-20 md:pt-40 md:pb-28 px-4 relative overflow-hidden flowing-gradient ${gradient}`}>
+    <section id="home" className="pt-32 pb-20 md:pt-40 md:pb-28 px-4 relative overflow-hidden bg-primary-gradient">
       <div className="container mx-auto relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <motion.h1
@@ -40,7 +36,7 @@ export default function Hero({ gradient = "gradient-purple-indigo" }: HeroProps)
           >
             <Button 
               onClick={() => setIsAuthModalOpen(true)}
-              className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-8 py-6 h-auto text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-white/20"
+              className="bg-primary-light hover:bg-primary-medium text-white px-8 py-6 h-auto text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-primary/20"
             >
               Get Started
               <ArrowRightIcon className="ml-2 h-5 w-5" />
@@ -51,15 +47,14 @@ export default function Hero({ gradient = "gradient-purple-indigo" }: HeroProps)
 
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-400/10 dark:bg-purple-600/10 rounded-full filter blur-3xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-indigo-400/10 dark:bg-indigo-600/10 rounded-full filter blur-3xl"></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
       </div>
 
       {/* Auth Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
-        bgColor={gradient}
       />
     </section>
   )

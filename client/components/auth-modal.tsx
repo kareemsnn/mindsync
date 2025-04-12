@@ -18,7 +18,7 @@ import Link from "next/link"
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
-  bgColor: string
+  bgColor?: string
 }
 
 export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) {
@@ -30,12 +30,8 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
   const [registerPassword, setRegisterPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
-  const { login, register, isLoading, user } = useAuth()
-  console.log(isLoading)
+  const { login, register, user, isLoading } = useAuth()
   const router = useRouter()
-
-  // Determine the color family to apply appropriate styling
-  const colorFamily = bgColor.split("-")[0]
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,9 +76,9 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
       <DialogContent className="p-0 bg-transparent border-none shadow-none max-w-md">
         <DialogTitle className="sr-only">Authentication</DialogTitle>
         <motion.div
-          className={`w-full rounded-lg bg-white/10 backdrop-blur-md p-8 
+          className="w-full rounded-lg bg-primary-dark border-primary/30 p-8 
           shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.05)] 
-          border border-white/10 relative overflow-hidden`}
+          border relative overflow-hidden"
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
@@ -92,9 +88,9 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
             <h2 className="mb-6 text-2xl font-bold text-center text-white">mindsync</h2>
 
             <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/10">
-                <TabsTrigger value="login" className="data-[state=active]:bg-white/20 text-white">Login</TabsTrigger>
-                <TabsTrigger value="register" className="data-[state=active]:bg-white/20 text-white">Register</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-primary-medium">
+                <TabsTrigger value="login" className="data-[state=active]:bg-primary text-white">Login</TabsTrigger>
+                <TabsTrigger value="register" className="data-[state=active]:bg-primary text-white">Register</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -110,7 +106,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="name@example.com"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -124,7 +120,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setLoginPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="flex justify-end">
@@ -134,7 +130,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/20" 
+                    className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
                     disabled={isLoading}
                   >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -156,7 +152,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setRegisterName(e.target.value)}
                       placeholder="John Doe"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -170,7 +166,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setRegisterEmail(e.target.value)}
                       placeholder="name@example.com"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -184,7 +180,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="space-y-2">
@@ -198,7 +194,7 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
                     />
                   </div>
                   <div className="flex items-start space-x-2">
@@ -206,27 +202,21 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                       id="terms"
                       checked={agreeTerms}
                       onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                      className="border-white/30 data-[state=checked]:bg-white/20 data-[state=checked]:text-white"
+                      className="border-primary/30 data-[state=checked]:bg-primary data-[state=checked]:text-white"
                     />
-                    <div className="grid gap-1.5 leading-none">
-                      <label
-                        htmlFor="terms"
-                        className="text-sm font-medium leading-none text-white/90 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        I agree to the{" "}
-                        <Link href="/terms" className="text-white hover:underline">
-                          Terms of Service
-                        </Link>{" "}
-                        and{" "}
-                        <Link href="/privacy" className="text-white hover:underline">
-                          Privacy Policy
-                        </Link>
-                      </label>
-                    </div>
+                    <Label
+                      htmlFor="terms"
+                      className="text-sm font-normal text-white/80 leading-tight"
+                    >
+                      I agree to the{" "}
+                      <Link href="/terms" className="underline hover:text-white">
+                        terms and conditions
+                      </Link>
+                    </Label>
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/20" 
+                    className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
                     disabled={isLoading}
                   >
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -235,6 +225,12 @@ export default function AuthModal({ isOpen, onClose, bgColor }: AuthModalProps) 
                 </form>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Background blur elements */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+            <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+            <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
           </div>
         </motion.div>
       </DialogContent>

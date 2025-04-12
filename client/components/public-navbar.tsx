@@ -83,6 +83,15 @@ export default function PublicNavbar({ onNavClick, currentGradient = "gradient-p
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label="Toggle theme"
+                className="text-white hover:bg-white/10"
+              >
+                {theme === "dark" ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+              </Button>
               <Button 
                 onClick={() => setIsAuthModalOpen(true)}
                 className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/20"

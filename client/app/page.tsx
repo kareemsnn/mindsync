@@ -9,24 +9,9 @@ import Features from "@/components/features";
 import CallToAction from "@/components/call-to-action";
 import Footer from "@/components/footer";
 
-// Gradient classes for different sections
-const gradients = [
-  "gradient-purple-indigo",
-  "gradient-blue-teal",
-  "gradient-pink-purple",
-  "gradient-yellow-orange",
-  "gradient-green-emerald"
-];
-
 export default function Home() {
   const [started, setStarted] = useState(false);
-  const [gradient, setGradient] = useState("");
   
-  useEffect(() => {
-    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
-    setGradient(randomGradient);
-  }, []);
-
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
@@ -35,12 +20,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-background">
       <AnimatePresence>
         {!started ? (
           <motion.div
             key="start-screen"
-            className={`flex flex-col items-center justify-center min-h-screen flowing-gradient ${gradient}`}
+            className="flex flex-col items-center justify-center min-h-screen bg-primary-gradient"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
@@ -61,12 +46,18 @@ export default function Home() {
             >
               <Button
                 size="lg"
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-white/20"
+                className="bg-primary-light text-white hover:bg-primary-medium px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all border border-primary/20"
                 onClick={() => setStarted(true)}
               >
                 Start
               </Button>
             </motion.div>
+            
+            {/* Background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+              <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-primary/10 dark:bg-primary/20 rounded-full filter blur-3xl"></div>
+            </div>
           </motion.div>
         ) : (
           <motion.div
@@ -76,12 +67,12 @@ export default function Home() {
             transition={{ duration: 0.5 }}
             className="flex flex-col min-h-screen"
           >
-            <Navbar onNavClick={scrollToSection} currentGradient={gradient} />
+            <Navbar onNavClick={scrollToSection} />
             <main>
-              <Hero gradient={gradient} />
-              <Features gradient={gradient} />
-              <CallToAction gradient={gradient} />
-              <Footer gradient={gradient} />
+              <Hero />
+              <Features />
+              <CallToAction />
+              <Footer />
             </main>
           </motion.div>
         )}

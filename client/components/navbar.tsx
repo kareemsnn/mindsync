@@ -1,7 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -14,13 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, MessageSquare, Settings, User } from "lucide-react"
+import { Bell, MessageSquare, Settings, User, Moon, Sun } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { useTheme } from "next-themes"
 
 // Protected dashboard navbar
 export default function Navbar() {
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   
   const handleLogout = async () => {
     try {
@@ -46,6 +46,15 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+          
           <Button variant="ghost" size="icon" asChild>
             <Link href="/notifications">
               <Bell className="h-5 w-5" />

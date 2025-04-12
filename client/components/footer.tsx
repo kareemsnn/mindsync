@@ -1,12 +1,8 @@
 import { FacebookIcon, TwitterIcon, InstagramIcon, LinkedinIcon } from "lucide-react"
 
-interface FooterProps {
-  gradient?: string;
-}
-
-export default function Footer({ gradient = "gradient-purple-indigo" }: FooterProps) {
+export default function Footer() {
   return (
-    <footer id="join" className={`py-12 px-4 scroll-mt-16 flowing-gradient ${gradient}`}>
+    <footer id="join" className="py-12 px-4 scroll-mt-16 bg-primary-dark">
       <div className="container mx-auto relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
