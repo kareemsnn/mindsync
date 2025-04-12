@@ -9,6 +9,38 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      answers: {
+        Row: {
+          answer: string
+          created_at: string | null
+          id: number
+          question_id: number
+          user_id: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string | null
+          id?: never
+          question_id: number
+          user_id: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string | null
+          id?: never
+          question_id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       embeddings: {
         Row: {
           created_at: string | null
@@ -120,40 +152,49 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bio: string | null
+          describe: string[] | null
           email: string | null
           id: number
           image_url: string | null
+          interests: string[] | null
+          is_onboarded: boolean | null
           user_id: string | null
         }
         Insert: {
+          bio?: string | null
+          describe?: string[] | null
           email?: string | null
           id?: number
           image_url?: string | null
+          interests?: string[] | null
+          is_onboarded?: boolean | null
           user_id?: string | null
         }
         Update: {
+          bio?: string | null
+          describe?: string[] | null
           email?: string | null
           id?: number
           image_url?: string | null
+          interests?: string[] | null
+          is_onboarded?: boolean | null
           user_id?: string | null
         }
         Relationships: []
       }
       questions: {
         Row: {
-          answer: string | null
           created_at: string | null
           id: number
           question: string
         }
         Insert: {
-          answer?: string | null
           created_at?: string | null
           id?: number
           question: string
         }
         Update: {
-          answer?: string | null
           created_at?: string | null
           id?: number
           question?: string

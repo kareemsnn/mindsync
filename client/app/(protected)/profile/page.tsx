@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,29 +10,47 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
-import { Check, CheckCircle, MessageSquare, Pencil, Upload, Users, X } from "lucide-react"
+import { Check, CheckCircle, MessageSquare, Pencil, Upload, Users, X, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
-// Mock user profile data
-const mockUserProfile = {
-  bio: "Product designer passionate about creating intuitive user experiences. I enjoy discussing technology trends and their impact on society.",
-  interests: ["Technology", "Design", "Psychology", "Philosophy", "Science"],
-  personalityTraits: ["Creative", "Analytical", "Empathetic", "Detail-oriented"],
-  stats: {
-    groupsJoined: 12,
-    questionsAnswered: 48,
-    messagesExchanged: 156,
-  },
+// Mock activity data
+const mockStats = {
+  groupsJoined: 12,
+  questionsAnswered: 48,
+  messagesExchanged: 156,
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateProfile, isUpdating } = useAuth()
   const [isEditingBio, setIsEditingBio] = useState(false)
-  const [bio, setBio] = useState(mockUserProfile.bio)
-  const [tempBio, setTempBio] = useState(mockUserProfile.bio)
+  const [bio, setBio] = useState(user?.profile?.bio || "")
+  const [tempBio, setTempBio] = useState(user?.profile?.bio || "")
+  
+  // Update bio state when user data changes
+  useEffect(() => {
+    if (user?.profile?.bio) {
+      setBio(user.profile.bio)
+      setTempBio(user.profile.bio)
+    }
+  }, [user?.profile?.bio])
+  
+  // Get display name from email
+  const displayName = user?.profile?.email?.split('@')[0] || user?.email?.split('@')[0] || 'User'
 
-  const handleSaveBio = () => {
-    setBio(tempBio)
-    setIsEditingBio(false)
+  const handleSaveBio = async () => {
+    if (user) {
+      try {
+        await updateProfile({
+          bio: tempBio
+        })
+        setBio(tempBio)
+        setIsEditingBio(false)
+        toast.success("Bio updated successfully!")
+      } catch (error) {
+        console.error("Error updating bio:", error)
+        toast.error("Failed to update bio. Please try again.")
+      }
+    }
   }
 
   const handleCancelBio = () => {
@@ -60,8 +78,8 @@ export default function ProfilePage() {
               <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
                 <div className="relative">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name} />
-                    <AvatarFallback className="text-2xl">{user?.name?.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user?.profile?.image_url || "/placeholder.svg"} alt={displayName} />
+                    <AvatarFallback className="text-2xl">{displayName.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <Button
                     size="icon"
@@ -73,7 +91,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-2xl font-bold">{user?.name}</h2>
+                  <h2 className="text-2xl font-bold">{displayName}</h2>
                   <p className="text-muted-foreground">{user?.email}</p>
                   <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
                     <Badge variant="outline">Member since May 2023</Badge>
@@ -107,16 +125,24 @@ export default function ProfilePage() {
                     className="min-h-[100px]"
                   />
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={handleCancelBio}>
+                    <Button variant="outline" size="sm" onClick={handleCancelBio} disabled={isUpdating}>
                       <X className="h-4 w-4 mr-1" /> Cancel
                     </Button>
-                    <Button size="sm" onClick={handleSaveBio}>
-                      <Check className="h-4 w-4 mr-1" /> Save
+                    <Button size="sm" onClick={handleSaveBio} disabled={isUpdating}>
+                      {isUpdating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-1" /> Save
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
               ) : (
-                <p>{bio}</p>
+                <p>{bio || "No bio added yet."}</p>
               )}
             </CardContent>
           </Card>
@@ -135,11 +161,15 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {mockUserProfile.interests.map((interest) => (
-                    <Badge key={interest} variant="secondary">
-                      {interest}
-                    </Badge>
-                  ))}
+                  {user?.profile?.interests && Array.isArray(user.profile.interests) ? (
+                    user.profile.interests.map((interest: string) => (
+                      <Badge key={interest} variant="secondary">
+                        {interest}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">No interests added yet.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -156,11 +186,15 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {mockUserProfile.personalityTraits.map((trait) => (
-                    <Badge key={trait} variant="secondary">
-                      {trait}
-                    </Badge>
-                  ))}
+                  {user?.profile?.describe && Array.isArray(user.profile.describe) ? (
+                    user.profile.describe.map((trait: string) => (
+                      <Badge key={trait} variant="secondary">
+                        {trait}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">No traits added yet.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -173,10 +207,6 @@ export default function ProfilePage() {
               <CardDescription>Manage your account information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue={user?.name} />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" defaultValue={user?.email} />
@@ -199,19 +229,19 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-bold">{mockUserProfile.stats.groupsJoined}</p>
+                    <p className="text-3xl font-bold">{mockStats.groupsJoined}</p>
                     <p className="text-sm text-muted-foreground">Groups Joined</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-bold">{mockUserProfile.stats.questionsAnswered}</p>
+                    <p className="text-3xl font-bold">{mockStats.questionsAnswered}</p>
                     <p className="text-sm text-muted-foreground">Questions Answered</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-bold">{mockUserProfile.stats.messagesExchanged}</p>
+                    <p className="text-3xl font-bold">{mockStats.messagesExchanged}</p>
                     <p className="text-sm text-muted-foreground">Messages Exchanged</p>
                   </CardContent>
                 </Card>
@@ -250,7 +280,7 @@ export default function ProfilePage() {
                     <Users className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium">You were matched with Digital Wellness Group</p>
+                    <p className="font-medium">You joined a new group: Data Science Explorers</p>
                     <p className="text-sm text-muted-foreground">3 days ago</p>
                   </div>
                 </div>

@@ -1,164 +1,92 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { useAuth } from "@/contexts/auth-context"
+import { Bell, MessageSquare, Settings, User } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react"
-import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
-import AuthModal from "@/components/auth-modal"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation"
 
-const navLinks = [
-  { name: "Home", href: "#home", id: "home" },
-  { name: "Features", href: "#features", id: "features" },
-  { name: "How It Works", href: "#how-it-works", id: "how-it-works" },
-  { name: "Join", href: "#join", id: "join" },
-]
-
-interface NavbarProps {
-  onNavClick?: (id: string) => void;
-}
-
-export default function Navbar({ onNavClick }: NavbarProps) {
-  const [scrolled, setScrolled] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault()
-    if (onNavClick) {
-      onNavClick(id)
-    }
-    if (mobileMenuOpen) {
-      setMobileMenuOpen(false)
+export default function Navbar() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
+  
+  const handleLogout = async () => {
+    try {
+      console.log("Logging out")
+      await logout()
+      router.push("/")
+    } catch (error) {
+      console.error("Logout failed:", error)
     }
   }
+  
+  // Extract user display name from email if available
+  const displayName = user?.profile?.email?.split('@')[0] || user?.email?.split('@')[0] || 'User'
+  const userInitial = displayName.charAt(0).toUpperCase()
 
   return (
-    <>
-      <motion.header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled ? "bg-primary/90 backdrop-blur-md shadow-md py-2" : "bg-transparent py-4",
-        )}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <a 
-              href="#home" 
-              className="flex items-center"
-              onClick={(e) => handleNavClick(e, "home")}
-            >
-              <span className="text-2xl font-bold text-white">
-                mindsync
-              </span>
-            </a>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  className="text-white/80 hover:text-white transition-colors"
-                  onClick={(e) => handleNavClick(e, link.id)}
-                >
-                  {link.name}
-                </a>
-              ))}
-            </nav>
-
-            <div className="hidden md:flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Toggle theme"
-                className="text-white/80 hover:text-white hover:bg-primary-light"
-              >
-                {theme === "dark" ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-              </Button>
-              <Button 
-                onClick={() => setIsAuthModalOpen(true)}
-                className="bg-primary-light hover:bg-primary-medium text-white border border-primary/20"
-              >
-                Sign Up
-              </Button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="flex md:hidden items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                aria-label="Toggle theme"
-                className="text-white/80 hover:text-white hover:bg-primary-light"
-              >
-                {theme === "dark" ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                aria-label="Toggle menu"
-                className="text-white/80 hover:text-white hover:bg-primary-light"
-              >
-                {mobileMenuOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <motion.div
-              className="md:hidden py-4 mt-2"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="flex flex-col space-y-4 bg-primary-medium p-4 rounded-lg">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-white/80 hover:text-white transition-colors py-2"
-                    onClick={(e) => handleNavClick(e, link.id)}
-                  >
-                    {link.name}
-                  </a>
-                ))}
-                <Button 
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="bg-primary-light hover:bg-primary-medium text-white w-full border border-primary/20"
-                >
-                  Sign Up
-                </Button>
-              </div>
-            </motion.div>
-          )}
+    <nav className="border-b bg-background px-4 py-3">
+      <div className="container mx-auto flex items-center justify-between">
+        <div className="flex items-center gap-2 md:hidden">
+          <Link href="/dashboard" className="font-handwriting text-xl">
+            mindsync
+          </Link>
         </div>
-      </motion.header>
 
-      {/* Auth Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-    </>
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/notifications">
+              <Bell className="h-5 w-5" />
+              <span className="sr-only">Notifications</span>
+            </Link>
+          </Button>
+
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/chats">
+              <MessageSquare className="h-5 w-5" />
+              <span className="sr-only">Messages</span>
+            </Link>
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.profile?.image_url || "/placeholder.svg"} alt={displayName} />
+                  <AvatarFallback>{userInitial}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </nav>
   )
 }

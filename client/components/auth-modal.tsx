@@ -27,6 +27,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
+  const { login, register, isLoading, user } = useAuth()
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const { login, register, isLoading } = useAuth()
@@ -35,9 +36,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await login(loginEmail, loginPassword)
+      const { error } = await login(loginEmail, loginPassword)
+      if (error) {
+        console.error("Login failed:", error)
+        return
+      }
       onClose()
-      router.push("/dashboard")
+      router.push(user?.profile?.is_onboarded ? "/dashboard" : "/onboarding")
     } catch (error) {
       console.error("Login failed:", error)
     }
@@ -54,7 +59,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       return
     }
     try {
-      await register(registerName, registerEmail, registerPassword)
+      const { error } = await register(registerName, registerEmail, registerPassword)
+      if (error) {
+        console.error("Registration failed:", error)
+        return
+      }
       onClose()
       router.push("/onboarding")
     } catch (error) {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/contexts/auth-context"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 const interests = [
   "Technology",
@@ -51,8 +52,20 @@ export default function OnboardingPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [bio, setBio] = useState("")
-  const { updateProfile } = useAuth()
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const { updateProfile, user, isUpdating } = useAuth()
+  
+  // Initialize state from existing profile if available
+  useEffect(() => {
+    if (user?.profile) {
+      if (user.profile.interests) setSelectedInterests(user.profile.interests as string[]);
+      if (user.profile.describe) setSelectedTraits(user.profile.describe as string[]);
+      if (user.profile.bio) setBio(user.profile.bio);
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+    }
+  }, [user?.profile]);
 
   const totalSteps = 3
   const progress = (step / totalSteps) * 100
@@ -65,16 +78,24 @@ export default function OnboardingPage() {
     setSelectedTraits((prev) => (prev.includes(trait) ? prev.filter((t) => t !== trait) : [...prev, trait]))
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
-      updateProfile({
-        interests: selectedInterests,
-        personality_traits: selectedTraits,
-        bio: bio,
-      })
-      router.push("/dashboard")
+      try {
+        await updateProfile({
+          bio: bio,
+          interests: selectedInterests,
+          describe: selectedTraits,
+          is_onboarded: true
+        })
+        
+        toast.success("Profile updated successfully!")
+        router.push("/dashboard")
+      } catch (error) {
+        console.error("Error updating profile:", error)
+        toast.error("Failed to update profile. Please try again.")
+      }
     }
   }
 
@@ -82,6 +103,17 @@ export default function OnboardingPage() {
     if (step > 1) {
       setStep(step - 1)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-r from-sky-200 to-sky-100 flex items-center justify-center p-4">
+        <div className="bg-white/70 backdrop-blur-md p-12 rounded-lg shadow-lg border border-white/50 flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-sky-500" />
+          <p className="mt-4 text-sky-700 font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -173,15 +205,22 @@ export default function OnboardingPage() {
             )}
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={handleBack} disabled={step === 1} className="bg-black text-white hover:bg-gray-800">
+            <Button variant="outline" onClick={handleBack} disabled={step === 1 || isUpdating}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
             <Button
               onClick={handleNext}
-              disabled={(step === 1 && selectedInterests.length < 3) || (step === 2 && selectedTraits.length < 2)}
-              className="bg-black text-white hover:bg-gray-800"
+              disabled={
+                isUpdating || 
+                (step === 1 && selectedInterests.length < 3) || 
+                (step === 2 && selectedTraits.length < 2)
+              }
             >
-              {step === totalSteps ? (
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                </>
+              ) : step === totalSteps ? (
                 <>
                   Complete <Check className="ml-2 h-4 w-4" />
                 </>
