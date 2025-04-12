@@ -2,19 +2,16 @@
 
 import type React from "react"
 import { Suspense } from "react"
-
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import Sidebar from "@/components/sidebar"
-import { Loader2 } from "lucide-react"
 import Loading from "./loading"
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, session, isLoading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-
   useEffect(() => {
     // Wait until loading is complete
     if (isLoading) return;
@@ -32,7 +29,15 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     }
     
     const isOnboardingRoute = pathname.includes("/onboarding");
-    const isUserOnboarded = user.profile?.is_onboarded;
+    const isUserOnboarded = Boolean(user.profile.is_onboarded);
+    
+    // Debug logging
+    console.log('Route check:', { 
+      isOnboardingRoute, 
+      isUserOnboarded, 
+      path: pathname,
+      profile: user.profile
+    });
     
     // Redirect based on onboarding status
     if (isUserOnboarded && isOnboardingRoute) {
@@ -43,15 +48,12 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       router.push("/onboarding");
     }
   }, [isLoading, user, router, pathname])
-
   if (isLoading) {
     return <Loading />
   }
-
   if (!user) {
     return null
   }
-
   return (
     <div className="flex h-screen flex-col md:flex-row">
       <Sidebar />
@@ -61,6 +63,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           <Suspense fallback={<Loading />}>
             {children}
           </Suspense>
+        </main>
       </div>
     </div>
   )

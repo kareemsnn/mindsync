@@ -18,6 +18,7 @@ import Link from "next/link"
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
+  bgColor?: string
 }
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
@@ -27,10 +28,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [registerName, setRegisterName] = useState("")
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
-  const { login, register, isLoading, user } = useAuth()
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
-  const { login, register, isLoading } = useAuth()
+  const { login, register, user, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/public-navbar";
 import Hero from "@/components/hero";
 import Features from "@/components/features";
 import CallToAction from "@/components/call-to-action";
