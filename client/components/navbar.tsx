@@ -17,10 +17,9 @@ const navLinks = [
 
 interface NavbarProps {
   onNavClick?: (id: string) => void;
-  currentGradient?: string;
 }
 
-export default function Navbar({ onNavClick, currentGradient = "gradient-purple-indigo" }: NavbarProps) {
+export default function Navbar({ onNavClick }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -50,7 +49,7 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
       <motion.header
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-          scrolled ? "bg-black/30 backdrop-blur-md shadow-md py-2" : "bg-transparent py-4",
+          scrolled ? "bg-primary/90 backdrop-blur-md shadow-md py-2" : "bg-transparent py-4",
         )}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -83,9 +82,18 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
             </nav>
 
             <div className="hidden md:flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                aria-label="Toggle theme"
+                className="text-white/80 hover:text-white hover:bg-primary-light"
+              >
+                {theme === "dark" ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+              </Button>
               <Button 
                 onClick={() => setIsAuthModalOpen(true)}
-                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/20"
+                className="bg-primary-light hover:bg-primary-medium text-white border border-primary/20"
               >
                 Sign Up
               </Button>
@@ -98,7 +106,7 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
                 size="icon"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 aria-label="Toggle theme"
-                className="text-white"
+                className="text-white/80 hover:text-white hover:bg-primary-light"
               >
                 {theme === "dark" ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
               </Button>
@@ -107,7 +115,7 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
                 size="icon"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
-                className="text-white"
+                className="text-white/80 hover:text-white hover:bg-primary-light"
               >
                 {mobileMenuOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
               </Button>
@@ -123,7 +131,7 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="flex flex-col space-y-4 bg-black/30 backdrop-blur-md p-4 rounded-lg">
+              <div className="flex flex-col space-y-4 bg-primary-medium p-4 rounded-lg">
                 {navLinks.map((link) => (
                   <a
                     key={link.name}
@@ -136,7 +144,7 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
                 ))}
                 <Button 
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white w-full border border-white/20"
+                  className="bg-primary-light hover:bg-primary-medium text-white w-full border border-primary/20"
                 >
                   Sign Up
                 </Button>
@@ -150,7 +158,6 @@ export default function Navbar({ onNavClick, currentGradient = "gradient-purple-
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-        bgColor={currentGradient}
       />
     </>
   )

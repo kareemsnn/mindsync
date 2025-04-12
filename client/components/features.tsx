@@ -4,38 +4,34 @@ import { motion } from "framer-motion"
 import { Users, MessageSquare, BarChart4, Network } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface FeaturesProps {
-  gradient?: string;
-}
-
 const features = [
   {
-    icon: <Users className="h-10 w-10 text-white" />,
+    icon: <Users className="h-10 w-10 text-primary" />,
     title: "Personality Matching",
     description:
       "Our advanced NLP algorithms analyze your responses to daily questions, creating a detailed personality profile to match you with like-minded individuals.",
   },
   {
-    icon: <MessageSquare className="h-10 w-10 text-white" />,
+    icon: <MessageSquare className="h-10 w-10 text-primary" />,
     title: "Group Day",
     description:
       "Every week, experience our special Group Day where you're placed in chat groups with others based on similarity scores, expanding your social circle.",
   },
   {
-    icon: <BarChart4 className="h-10 w-10 text-white" />,
+    icon: <BarChart4 className="h-10 w-10 text-primary" />,
     title: "Similarity Scoring",
     description:
       "Watch your connections grow with our unique similarity scoring system that visualizes how you relate to others in your network.",
   },
   {
-    icon: <Network className="h-10 w-10 text-white" />,
+    icon: <Network className="h-10 w-10 text-primary" />,
     title: "Network Visualization",
     description:
       "Explore your social connections through interactive network graphs that reveal patterns in your relationships and personality traits.",
   },
 ]
 
-export default function Features({ gradient = "gradient-purple-indigo" }: FeaturesProps) {
+export default function Features() {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -56,11 +52,11 @@ export default function Features({ gradient = "gradient-purple-indigo" }: Featur
   }
 
   return (
-    <section id="features" className={`py-20 px-4 scroll-mt-16 flowing-gradient ${gradient}`}>
+    <section id="features" className="py-20 px-4 scroll-mt-16 bg-secondary">
       <div className="container mx-auto relative z-10">
         <div className="text-center mb-16">
           <motion.h2
-            className="text-3xl md:text-4xl font-bold mb-4 text-white"
+            className="text-3xl md:text-4xl font-bold mb-4 text-foreground"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -69,7 +65,7 @@ export default function Features({ gradient = "gradient-purple-indigo" }: Featur
             Key Features
           </motion.h2>
           <motion.p
-            className="text-lg text-white/90 max-w-2xl mx-auto"
+            className="text-lg text-muted-foreground max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -88,13 +84,13 @@ export default function Features({ gradient = "gradient-purple-indigo" }: Featur
         >
           {features.map((feature, index) => (
             <motion.div key={index} variants={itemVariants}>
-              <Card className="h-full bg-white/10 backdrop-blur-md border-white/10 shadow-sm hover:shadow-md transition-shadow">
+              <Card className="h-full bg-card border-border shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="mb-4">{feature.icon}</div>
-                  <CardTitle className="text-xl font-bold text-white">{feature.title}</CardTitle>
+                  <CardTitle className="text-xl font-bold text-foreground">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-base text-white/80">
+                  <CardDescription className="text-base text-muted-foreground">
                     {feature.description}
                   </CardDescription>
                 </CardContent>

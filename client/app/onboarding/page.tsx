@@ -51,7 +51,7 @@ export default function OnboardingPage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   const [bio, setBio] = useState("")
-  const { completeOnboarding } = useAuth()
+  const { updateProfile } = useAuth()
   const router = useRouter()
 
   const totalSteps = 3
@@ -69,7 +69,11 @@ export default function OnboardingPage() {
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
-      completeOnboarding()
+      updateProfile({
+        interests: selectedInterests,
+        personality_traits: selectedTraits,
+        bio: bio,
+      })
       router.push("/dashboard")
     }
   }
