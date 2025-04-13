@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { useWelcomeMessage } from './use-welcome-message'
+import { Database } from '@/database.types'
 
 export type GroupMember = {
   id: number
@@ -10,13 +12,7 @@ export type GroupMember = {
   }
 }
 
-export type Group = {
-  id: number
-  name: string
-  description: string | null
-  expires_at: string | null
-  created_at: string
-}
+export type Group = Database['public']['Tables']['groups']['Row']
 
 export type GroupWithDetails = Group & {
   members: {
@@ -38,7 +34,6 @@ export const useGroups = (userId: string | undefined) => {
     queryFn: async () => {
       if (!userId) throw new Error('User ID is required')
       
-      // Get groups the user is a member of
       const { data: memberData, error: memberError } = await supabase
         .from('group_members')
         .select('group_id')
@@ -54,7 +49,6 @@ export const useGroups = (userId: string | undefined) => {
         .map(m => m.group_id)
         .filter(id => id !== null) as number[]
       
-      // Get group data
       const { data: groupsData, error: groupsError } = await supabase
         .from('groups')
         .select('*')
@@ -66,10 +60,8 @@ export const useGroups = (userId: string | undefined) => {
         return { activeGroups: [], pastGroups: [] }
       }
       
-      // Process each group to get members and additional info
       const processedGroups = await Promise.all(
         groupsData.map(async (group) => {
-          // Get group members
           const { data: membersData, error: membersError } = await supabase
             .from('group_members')
             .select('user_id')
@@ -81,7 +73,6 @@ export const useGroups = (userId: string | undefined) => {
             .map(m => m.user_id)
             .filter(Boolean) as string[]
           
-          // Get profiles for members
           let profiles: { user_id: string | null, email: string | null, image_url: string | null }[] = []
           
           if (userIds.length > 0) {
@@ -94,7 +85,6 @@ export const useGroups = (userId: string | undefined) => {
             if (profilesData) profiles = profilesData
           }
           
-          // Format member data
           const formattedMembers = membersData.map(member => {
             const profile = profiles.find(p => p.user_id === member.user_id)
             return {
@@ -104,7 +94,6 @@ export const useGroups = (userId: string | undefined) => {
             }
           })
           
-          // Get message count
           const { count: messageCount, error: countError } = await supabase
             .from('messages')
             .select('id', { count: 'exact', head: true })
@@ -112,7 +101,6 @@ export const useGroups = (userId: string | undefined) => {
           
           if (countError) throw countError
           
-          // Get last activity timestamp
           const { data: latestMessage, error: latestError } = await supabase
             .from('messages')
             .select('created_at')
@@ -134,7 +122,8 @@ export const useGroups = (userId: string | undefined) => {
             messageCount: messageCount || 0,
             lastActive,
             expires_at: group.expires_at,
-            created_at: group.created_at
+            created_at: group.created_at,
+            welcomed: group.welcomed
           }
         })
       )
@@ -171,6 +160,8 @@ export const useGroups = (userId: string | undefined) => {
 
 // For single group data
 export const useGroupData = (groupId: number) => {
+  const { sendWelcomeMessage } = useWelcomeMessage(groupId.toString());
+  
   const {
     data: groupData,
     isLoading,
@@ -189,6 +180,22 @@ export const useGroupData = (groupId: number) => {
         .single()
       
       if (groupError) throw groupError
+      
+      const { count: messageCount, error: countError } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('group_id', groupId)
+
+      if (countError) throw countError
+
+      // If this is a new group that hasn't been welcomed yet, send the welcome message
+      if (messageCount === 0 && groupInfo && !groupInfo.welcomed) {
+        try {
+          await sendWelcomeMessage();
+        } catch (err) {
+          console.error('Failed to send welcome message:', err);
+        }
+      }
       
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')

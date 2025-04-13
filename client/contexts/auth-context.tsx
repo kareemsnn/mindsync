@@ -16,7 +16,7 @@ type AuthUser = {
 type AuthContextType = {
   user: AuthUser | null
   session: Session | null
-  isLoading: boolean
+  isInitializing: boolean
   isUpdating: boolean
   login: (email: string, password: string) => Promise<{ error: Error | null }>
   register: (name: string, email: string, password: string) => Promise<{ error: Error | null }>
@@ -26,7 +26,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-
 /* 
   AuthProvider is a component that provides the auth context to the app.
   It is used to wrap the app in a provider so that the auth context is available to all components.
@@ -34,12 +33,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     const initializeAuth = async () => {
-      setIsLoading(true)
+      setIsInitializing(true)
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession()
         setSession(currentSession)
@@ -50,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Error initializing auth:', error)
       } finally {
-        setIsLoading(false)
+        setIsInitializing(false)
       }
 
       const { data: { subscription } } = await supabase.auth.onAuthStateChange(
@@ -58,11 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(newSession)
           
           if (event === 'SIGNED_IN' && newSession?.user) {
-            setIsLoading(true)
+            setIsInitializing(true)
             try {
               await fetchUserProfile(newSession.user)
             } finally {
-              setIsLoading(false)
+              setIsInitializing(false)
             }
           } else if (event === 'SIGNED_OUT') {
             setUser(null)
@@ -109,8 +108,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login is a function that logs the user in using the supabase auth service.
   */
   const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -126,8 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error('Login error:', err)
       return { error: err instanceof Error ? err : new Error('Unknown error during login') }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -136,13 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     and creates their profile directly in the profiles table.
   */
   const register = async (name: string, email: string, password: string) => {
-    setIsLoading(true)
-    
     try {
-      console.log('Attempting to register user with email:', email)
-      
-      // Step 1: Create the user account using the built-in Supabase Auth API
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Sign up the user with Supabase Auth (profile creation is handled by the database trigger)
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -152,40 +143,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       
-      if (authError) {
-        console.error('Auth signup error:', authError)
+      if (error) {
+        console.error('Auth signup error:', error)
         console.error('Auth error details:', {
-          message: authError.message,
-          status: authError.status,
-          code: authError.code,
-          details: JSON.stringify(authError, null, 2)
+          message: error.message,
+          status: error.status,
+          code: error.code,
+          details: JSON.stringify(error, null, 2)
         })
-        return { error: authError }
+        return { error }
       }
       
-      if (!authData || !authData.user) {
+      if (!data || !data.user) {
         console.error('Auth signup failed: No user returned')
         return { error: new Error('User creation failed') }
       }
-      
-      console.log('Auth signup successful, creating profile...')
-      
-      // Step 2: Create the profile directly in the profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          full_name: name,
-          email: email,
-          is_onboarded: false,
-        })
-      
-      if (profileError) {
-        console.error('Profile creation error:', profileError)
-        return { error: profileError }
-      }
-      
-      console.log('Profile created successfully')
       
       return { error: null }
     } catch (err) {
@@ -202,8 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Non-Error registration exception:', typeof err, err)
       }
       return { error: err instanceof Error ? err : new Error('Unknown error during registration') }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -211,15 +181,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout is a function that logs the user out using the supabase auth service.
   */
   const logout = async () => {
-    setIsLoading(true)
     try {
       await supabase.auth.signOut()
       setUser(null)
       setSession(null)
     } catch (error) {
       console.error('Error during logout:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -257,7 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{ 
         user, 
         session,
-        isLoading,
+        isInitializing,
         isUpdating,
         login, 
         register, 

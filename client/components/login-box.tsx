@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/contexts/auth-context"
+import { Loader2 } from "lucide-react"
 
 interface LoginBoxProps {
   bgColor: string
@@ -17,7 +18,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
   const colorFamily = bgColor.split("-")[0]
   
   // Get auth context
-  const { login, register, isLoading } = useAuth()
+  const { login, register } = useAuth()
   
   // Form states
   const [loginEmail, setLoginEmail] = useState("")
@@ -26,22 +27,42 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
   const [registerEmail, setRegisterEmail] = useState("")
   const [registerPassword, setRegisterPassword] = useState("")
   
+  // Loading states
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false)
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false)
+  
+  // Error states
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [registerError, setRegisterError] = useState<string | null>(null)
+  
   // Form handlers
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { error } = await login(loginEmail, loginPassword)
-    if (error) {
-      console.error("Login failed:", error.message)
-      // Add error handling UI here if needed
+    setLoginError(null)
+    setIsLoginSubmitting(true)
+    
+    try {
+      const { error } = await login(loginEmail, loginPassword)
+      if (error) {
+        setLoginError(error.message)
+      }
+    } finally {
+      setIsLoginSubmitting(false)
     }
   }
   
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { error } = await register(name, registerEmail, registerPassword)
-    if (error) {
-      console.error("Registration failed:", error.message)
-      // Add error handling UI here if needed
+    setRegisterError(null)
+    setIsRegisterSubmitting(true)
+    
+    try {
+      const { error } = await register(name, registerEmail, registerPassword)
+      if (error) {
+        setRegisterError(error.message)
+      }
+    } finally {
+      setIsRegisterSubmitting(false)
     }
   }
 
@@ -71,6 +92,11 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
 
           <TabsContent value="login">
             <form className="space-y-4" onSubmit={handleLogin}>
+              {loginError && (
+                <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
+                  {loginError}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700">
                   Email
@@ -83,6 +109,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
+                  disabled={isLoginSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -97,6 +124,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
+                  disabled={isLoginSubmitting}
                 />
               </div>
               <div className="flex justify-end">
@@ -104,14 +132,24 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   Forgot password?
                 </a>
               </div>
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Log In"}
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoginSubmitting}>
+                {isLoginSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : "Log In"}
               </Button>
             </form>
           </TabsContent>
 
           <TabsContent value="register">
             <form className="space-y-4" onSubmit={handleRegister}>
+              {registerError && (
+                <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md">
+                  {registerError}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-gray-700">
                   Full Name
@@ -124,6 +162,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
+                  disabled={isRegisterSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -138,6 +177,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
+                  disabled={isRegisterSubmitting}
                 />
               </div>
               <div className="space-y-2">
@@ -152,10 +192,16 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
+                  disabled={isRegisterSubmitting}
                 />
               </div>
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isRegisterSubmitting}>
+                {isRegisterSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : "Create Account"}
               </Button>
               <p className="text-xs text-center text-gray-600">
                 By signing up, you agree to our Terms of Service and Privacy Policy

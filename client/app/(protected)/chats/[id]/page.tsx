@@ -18,6 +18,7 @@ import { useRealtimeMessages } from "@/hooks/use-realtime-messages"
 import { useGroupData } from "@/hooks/use-group-data"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/lib/supabase"
+import { useWelcomeMessage } from "@/hooks/use-welcome-message"
 
 export default function ChatPage() {
   const params = useParams()
@@ -37,6 +38,7 @@ function ChatContent({ groupId }: { groupId: number }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
   const [showMembersDialog, setShowMembersDialog] = useState(false)
+  const { sendWelcomeMessage } = useWelcomeMessage(groupId.toString())
 
   useEffect(() => {
     // Only prefetch if we have a valid groupId
@@ -115,6 +117,15 @@ function ChatContent({ groupId }: { groupId: number }) {
     error: messagesError,
     sendMessage 
   } = useRealtimeMessages(groupId)
+
+  // Check if this is a new group and send a welcome message if needed
+  useEffect(() => {
+    if (group && messages.length === 0 && !isLoadingMessages) {
+      sendWelcomeMessage().catch(error => {
+        console.error("Failed to send welcome message:", error);
+      });
+    }
+  }, [group, messages.length, isLoadingMessages, sendWelcomeMessage]);
 
   const isExpired = group?.expires_at 
     ? new Date(group.expires_at).getTime() <= new Date().getTime() 
