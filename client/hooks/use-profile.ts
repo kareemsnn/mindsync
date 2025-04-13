@@ -5,13 +5,33 @@ import { toast } from 'sonner'
 import { useAuth } from '@/contexts/auth-context'
 import { resizeAndCompressImage, convertFileToBase64, hexToDataUrl } from '@/utils/fileUtils'
 
+// Define the personality traits vector interface 
+export interface PersonalityTraitsVector {
+  personality_results: {
+    // Full trait names
+    agreeableness?: number;
+    openness?: number;
+    conscientiousness?: number;
+    extraversion?: number;
+    neuroticism?: number;
+    // Single character keys (OCEAN)
+    O?: number;
+    C?: number;
+    E?: number;
+    A?: number;
+    N?: number;
+    // Allow string indexing for dynamic access
+    [key: string]: number | undefined;
+  }
+}
+
 export type ProfileData = {
   bio: string | null
   full_name: string | null
   interests: string[] | null
   describe: string[] | null
   image_url: string | null
-  traits_vector: any | null
+  traits_vector: any | null // Keep as any to match database type but cast when needed
   // Additional property for displaying image in UI
   displayImageUrl?: string
 }

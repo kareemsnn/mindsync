@@ -200,7 +200,7 @@ export default function DashboardPage() {
                             </p>
                           </div>
                           <Button size="sm" variant="outline" asChild>
-                            <Link href={`/groups/${group.id}`}>Join Chat</Link>
+                            <Link href={`/chats/${group.id}`}>Join Chat</Link>
                           </Button>
                         </div>
                       </CardContent>
