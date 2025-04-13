@@ -1,0 +1,5 @@
+@app.post("/groupUsers")
+async def group_users(request: GroupingRequest):
+
+@app.post("/classifyUser")
+async def classify_user(request: ClassificationRequest):

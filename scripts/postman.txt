@@ -1,0 +1,102 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "list": [
+        "I enjoy quiet afternoons with a good book.",
+        "Solitude helps me recharge my energy."
+      ]
+    },
+    {
+      "id": 2,
+      "list": [
+        "Overcoming challenges at work showed me my strength.",
+        "I learned resilience through tough projects."
+      ]
+    },
+    {
+      "id": 3,
+      "list": [
+        "I appreciate quiet time to reflect on my thoughts.",
+        "Taking moments for myself keeps me balanced."
+      ]
+    },
+    {
+      "id": 4,
+      "list": [
+        "I've released childhood fears that no longer serve me.",
+        "Growing up meant letting go of old anxieties."
+      ]
+    },
+    {
+      "id": 5,
+      "list": [
+        "I find creativity flourishes when I embrace mistakes.",
+        "Imperfection opens the door to new ideas."
+      ]
+    },
+    {
+      "id": 6,
+      "list": [
+        "I feel energized at large social events.",
+        "Being in a crowd brings out my enthusiasm."
+      ]
+    },
+    {
+      "id": 7,
+      "list": [
+        "I cherish solitary activities like reading and writing.",
+        "Quiet time allows me to unlock my creative side."
+      ]
+    },
+    {
+      "id": 8,
+      "list": [
+        "Overcoming obstacles has made me more determined.",
+        "Facing challenges has built my discipline."
+      ]
+    },
+    {
+      "id": 9,
+      "list": [
+        "I experience deep connection when I share empathy.",
+        "I express kindness effortlessly with friends."
+      ]
+    },
+    {
+      "id": 10,
+      "list": [
+        "Even small setbacks can cause me considerable worry.",
+        "I sometimes experience intense emotions over minor issues."
+      ]
+    },
+    {
+      "id": 11,
+      "list": [
+        "I love the attention and energy of the spotlight.",
+        "Large events truly let my enthusiasm shine."
+      ]
+    },
+    {
+      "id": 12,
+      "list": [
+        "I find peace in solitary reflection and reading.",
+        "Quiet contemplation nurtures my creativity."
+      ]
+    },
+    {
+      "id": 13,
+      "list": [
+        "I approach every task with meticulous planning.",
+        "Attention to detail is central to my work ethic."
+      ]
+    },
+    {
+      "id": 14,
+      "list": [
+        "I get overwhelmed by emotions even from small challenges.",
+        "Minor setbacks can leave me feeling very anxious."
+      ]
+    }
+  ]
+}
