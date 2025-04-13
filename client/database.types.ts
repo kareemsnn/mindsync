@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       answers: {
@@ -90,6 +65,21 @@ export type Database = {
         }
         Relationships: []
       }
+      fdate: {
+        Row: {
+          expire_date: string
+          id: number
+        }
+        Insert: {
+          expire_date?: string
+          id?: never
+        }
+        Update: {
+          expire_date?: string
+          id?: never
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           group_id: number | null
@@ -127,6 +117,7 @@ export type Database = {
           expires_at: string | null
           id: number
           name: string
+          welcomed: boolean
         }
         Insert: {
           created_at?: string | null
@@ -135,6 +126,7 @@ export type Database = {
           expires_at?: string | null
           id?: number
           name: string
+          welcomed?: boolean
         }
         Update: {
           created_at?: string | null
@@ -143,6 +135,7 @@ export type Database = {
           expires_at?: string | null
           id?: number
           name?: string
+          welcomed?: boolean
         }
         Relationships: []
       }
@@ -222,19 +215,25 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: number
+          is_expired: boolean | null
           question: string
+          theme: string | null
         }
         Insert: {
           created_at?: string | null
           expires_at?: string | null
           id?: number
+          is_expired?: boolean | null
           question: string
+          theme?: string | null
         }
         Update: {
           created_at?: string | null
           expires_at?: string | null
           id?: number
+          is_expired?: boolean | null
           question?: string
+          theme?: string | null
         }
         Relationships: []
       }
@@ -338,6 +337,10 @@ export type Database = {
       vector_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      welcome_group_transaction: {
+        Args: { p_group_id: number }
+        Returns: undefined
       }
     }
     Enums: {
@@ -455,9 +458,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

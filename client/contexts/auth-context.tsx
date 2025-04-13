@@ -16,7 +16,7 @@ type AuthUser = {
 type AuthContextType = {
   user: AuthUser | null
   session: Session | null
-  isLoading: boolean
+  isInitializing: boolean
   isUpdating: boolean
   login: (email: string, password: string) => Promise<{ error: Error | null }>
   register: (name: string, email: string, password: string) => Promise<{ error: Error | null }>
@@ -26,7 +26,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-
 /* 
   AuthProvider is a component that provides the auth context to the app.
   It is used to wrap the app in a provider so that the auth context is available to all components.
@@ -34,12 +33,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInitializing, setIsInitializing] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     const initializeAuth = async () => {
-      setIsLoading(true)
+      setIsInitializing(true)
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession()
         setSession(currentSession)
@@ -50,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Error initializing auth:', error)
       } finally {
-        setIsLoading(false)
+        setIsInitializing(false)
       }
 
       const { data: { subscription } } = await supabase.auth.onAuthStateChange(
@@ -58,11 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(newSession)
           
           if (event === 'SIGNED_IN' && newSession?.user) {
-            setIsLoading(true)
+            setIsInitializing(true)
             try {
               await refreshUserData(newSession.user)
             } finally {
-              setIsLoading(false)
+              setIsInitializing(false)
             }
           } else if (event === 'SIGNED_OUT') {
             setUser(null)
@@ -95,34 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
       
-      // If no profile found but user exists, create a default profile
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: supabaseUser.id,
-            email: supabaseUser.email,
-          })
-        
-        if (insertError) {
-          console.error('Error creating default profile:', insertError)
-        } else {
-          // Fetch the newly created profile
-          const { data: newProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', supabaseUser.id)
-            .maybeSingle()
-          
-          setUser({
-            id: supabaseUser.id,
-            email: supabaseUser.email,
-            profile: newProfile || null,
-          })
-          return
-        }
-      }
-      
       setUser({
         id: supabaseUser.id,
         email: supabaseUser.email,
@@ -137,10 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login is a function that logs the user in using the supabase auth service.
   */
   const login = async (email: string, password: string) => {
-    setIsLoading(true)
-    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
@@ -150,35 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error }
       }
       
-      // Check if profile exists
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
-      
-      // Create profile if it doesn't exist
-      if (!profile && !fetchError) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: data.user.email
-          })
-          
-        if (insertError) {
-          console.error('Error creating profile on login:', insertError)
-        }
-      } else if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error checking for profile on login:', fetchError)
-      }
-      
       return { error: null }
     } catch (err) {
       console.error('Login error:', err)
       return { error: err instanceof Error ? err : new Error('Unknown error during login') }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -186,10 +130,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     register is a function that registers a new user using the supabase auth service.
   */
   const register = async (name: string, email: string, password: string) => {
-    setIsLoading(true)
-    
     try {
-      // First sign up the user with Supabase Auth
+      // Sign up the user with Supabase Auth (profile creation is handled by the database trigger)
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -209,39 +151,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: new Error('User creation failed') }
       }
       
-      // Check if profile already exists to avoid duplicate creation
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
-      // Only create a profile if it doesn't exist yet and there was no network error
-      if (!existingProfile && !fetchError) {
-        console.log("name", name)
-        // Create the profile record
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: email,
-            full_name: name 
-          })
-        
-        if (profileError) {
-          console.error('Error creating profile during registration:', profileError)
-          return { error: new Error('Profile creation failed') }
-        }
-      } else if (fetchError && fetchError.code !== 'PGRST116') {
-        // Log other fetch errors that aren't just "no rows returned"
-        console.error('Error checking for existing profile:', fetchError)
-      }
-      
       return { error: null }
     } catch (err) {
       console.error('Registration error:', err)
       return { error: err instanceof Error ? err : new Error('Unknown error during registration') }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -249,15 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout is a function that logs the user out using the supabase auth service.
   */
   const logout = async () => {
-    setIsLoading(true)
     try {
       await supabase.auth.signOut()
       setUser(null)
       setSession(null)
     } catch (error) {
       console.error('Error during logout:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -270,14 +180,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsUpdating(true)
     
     try {
-      // Add debug logging for image data
-      if (data.image_url) {
-        console.log("Updating profile with image_url, length:", data.image_url.length);
-        // Log the first and last few characters
-        const truncatedUrl = data.image_url.substring(0, 50) + "..." + data.image_url.substring(data.image_url.length - 10);
-        console.log("Image URL starts with:", truncatedUrl);
-      }
-      
       const { error } = await supabase
         .from('profiles')
         .update(data)
@@ -303,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{ 
         user, 
         session,
-        isLoading,
+        isInitializing,
         isUpdating,
         login, 
         register, 
