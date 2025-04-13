@@ -1,5 +1,7 @@
 "use client"
-import { useRouter } from "next/navigation"
+
+import { useAuth } from "@/contexts/auth-context"
+import { Bell, MessageSquare, Settings, User } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,29 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, MessageSquare, Settings, User, Moon, Sun } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { useTheme } from "next-themes"
 
-// Protected dashboard navbar
 export default function Navbar() {
   const { user, logout } = useAuth()
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
-  
-  const handleLogout = async () => {
-    try {
-      console.log("Logging out")
-      await logout()
-      router.push("/")
-    } catch (error) {
-      console.error("Logout failed:", error)
-    }
-  }
-  
-  // Extract user display name from email if available
-  const displayName = user?.profile?.email?.split('@')[0] || user?.email?.split('@')[0] || 'User'
-  const userInitial = displayName.charAt(0).toUpperCase()
+
   return (
     <nav className="border-b bg-background px-4 py-3">
       <div className="container mx-auto flex items-center justify-between">
@@ -42,34 +25,28 @@ export default function Navbar() {
             mindsync
           </Link>
         </div>
+
         <div className="flex items-center gap-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-          
           <Button variant="ghost" size="icon" asChild>
             <Link href="/notifications">
               <Bell className="h-5 w-5" />
               <span className="sr-only">Notifications</span>
             </Link>
           </Button>
+
           <Button variant="ghost" size="icon" asChild>
             <Link href="/chats">
               <MessageSquare className="h-5 w-5" />
               <span className="sr-only">Messages</span>
             </Link>
           </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profile?.image_url || "/placeholder.svg"} alt={displayName} />
-                  <AvatarFallback>{userInitial}</AvatarFallback>
+                  <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name} />
+                  <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -89,7 +66,7 @@ export default function Navbar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

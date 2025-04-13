@@ -46,7 +46,7 @@ export default function Sidebar() {
     <div className="flex h-full w-full flex-col border-r bg-background md:w-60">
       <div className="flex h-14 items-center border-b px-3 py-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="font-bold text-xl">mindsync</span>
+          <span className="font-handwriting text-xl font-medium">mindsync</span>
         </Link>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">

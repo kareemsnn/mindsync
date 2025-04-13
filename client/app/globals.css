@@ -5,64 +5,64 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 270 50% 10%;
+    --foreground: 0 0% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 270 50% 10%;
+    --card-foreground: 0 0% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 270 50% 10%;
+    --popover-foreground: 0 0% 3.9%;
 
-    --primary: 270 60% 50%; /* Purple primary */
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 270 30% 95%; /* Light purple secondary */
-    --secondary-foreground: 270 50% 30%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 270 20% 96%;
-    --muted-foreground: 270 20% 40%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
 
-    --accent: 270 40% 96%;
-    --accent-foreground: 270 60% 40%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 270 20% 90%;
-    --input: 270 20% 90%;
-    --ring: 270 60% 50%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 270 30% 10%;
+    --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
 
-    --card: 270 30% 13%;
+    --card: 0 0% 3.9%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 270 30% 13%;
+    --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 270 60% 60%; /* Brighter purple in dark mode */
-    --primary-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
 
-    --secondary: 270 30% 25%;
+    --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 270 20% 20%;
-    --muted-foreground: 270 20% 70%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
 
-    --accent: 270 40% 25%;
+    --accent: 0 0% 14.9%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 270 20% 30%;
-    --input: 270 20% 30%;
-    --ring: 270 60% 60%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
   }
 }
 
@@ -77,21 +77,4 @@
 
 .font-handwriting {
   font-family: var(--font-caveat), cursive;
-}
-
-/* Purple theme background classes */
-.bg-primary-gradient {
-  @apply bg-gradient-to-b from-primary/90 to-primary/70 dark:from-primary/80 dark:to-primary/50;
-}
-
-.bg-primary-light {
-  @apply bg-primary/10 dark:bg-primary/20 backdrop-blur-md;
-}
-
-.bg-primary-medium {
-  @apply bg-primary/20 dark:bg-primary/30 backdrop-blur-md;
-}
-
-.bg-primary-dark {
-  @apply bg-primary/30 dark:bg-primary/40 backdrop-blur-md;
 }

@@ -10,6 +10,9 @@ from deap import base, creator, tools, algorithms
 import numpy as np
 import random
 import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
+
+
 
 
 # GNN is used to gain global context after a KNN step.
@@ -49,25 +52,84 @@ class customGNN(nn.Module):
 # Uses the Hugging Face model mnaylor/psychbert-cased to perform
 # personality or mood-related text classification.
 
+
+"https://arxiv.org/abs/2406.16223" 
+trait_names = ["agreeableness", "openness", "conscientiousness", "extraversion", "neuroticism"]
+
+
 class PSYCHBERT:
     def __init__(self):
         try:
-            self.psychbert_classifier = pipeline(
-                "text-classification",
-                model="microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-                tokenizer="microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext"
-            )
+            # Load the locally trained model
+            model = AutoModelForSequenceClassification.from_pretrained("trained_PersonalityLM_best")
+            tokenizer = AutoTokenizer.from_pretrained("KevSun/Personality_LM")  # Still use the base tokenizer
+            
+            self.model = model
+            self.tokenizer = tokenizer
+            
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to load model: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to load PsychBERT model: {e}")
     
     def classify_personality(self, text: str):
-        # Classify personality from text using PsychBERT.
+        """
+        Classify a single piece of text and return personality scores.
+        """
         try:
-            results = self.psychbert_classifier(text)
-            return {"personality_results": results}
+            # Tokenize the input text
+            inputs = self.tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=256)
+            
+            # Get model predictions
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                predictions = outputs.logits.squeeze()
+            
+            # Convert predictions to personality scores
+            scores = predictions.numpy()
+            
+            # Create results dictionary mapping traits to scores
+            results = {
+                trait: float(score) 
+                for trait, score in zip(["O", "C", "E", "A", "N"], scores)
+            }
+            
+            return results
+            
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error during classification: {e}")
 
+    def aggregate_classification(self, texts: list, weights: list = None):
+        try:
+            if not texts:
+                raise HTTPException(status_code=400, detail="No texts provided for classification.")
+            
+            # Get predictions for all texts
+            all_scores = []
+            for text in texts:
+                result = self.classify_personality(text)
+                scores = [result[trait] for trait in ["O", "C", "E", "A", "N"]]
+                all_scores.append(scores)
+            
+            # Convert to numpy array for easier manipulation
+            all_scores = np.array(all_scores)
+            
+            # Apply weights if provided
+            if weights:
+                weights = np.array(weights).reshape(-1, 1)
+                weighted_scores = all_scores * weights
+                final_scores = weighted_scores.sum(axis=0) / weights.sum()
+            else:
+                final_scores = all_scores.mean(axis=0)
+            
+            # Create final results
+            aggregated_result = {
+                trait: float(f"{score:.4f}")
+                for trait, score in zip(["O", "C", "E", "A", "N"], final_scores)
+            }
+            
+            return {"personality_results": aggregated_result}
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error during aggregation: {e}")
 
 
 # GeneticAlgorithm: Uses a genetic algorithm to partition users into groups

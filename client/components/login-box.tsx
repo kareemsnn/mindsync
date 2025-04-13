@@ -1,12 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAuth } from "@/contexts/auth-context"
 
 interface LoginBoxProps {
   bgColor: string
@@ -15,35 +13,6 @@ interface LoginBoxProps {
 export default function LoginBox({ bgColor }: LoginBoxProps) {
   // Determine the color family to apply appropriate styling
   const colorFamily = bgColor.split("-")[0]
-  
-  // Get auth context
-  const { login, register, isLoading } = useAuth()
-  
-  // Form states
-  const [loginEmail, setLoginEmail] = useState("")
-  const [loginPassword, setLoginPassword] = useState("")
-  const [name, setName] = useState("")
-  const [registerEmail, setRegisterEmail] = useState("")
-  const [registerPassword, setRegisterPassword] = useState("")
-  
-  // Form handlers
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { error } = await login(loginEmail, loginPassword)
-    if (error) {
-      console.error("Login failed:", error.message)
-      // Add error handling UI here if needed
-    }
-  }
-  
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const { error } = await register(name, registerEmail, registerPassword)
-    if (error) {
-      console.error("Registration failed:", error.message)
-      // Add error handling UI here if needed
-    }
-  }
 
   return (
     <motion.div
@@ -70,7 +39,7 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
           </TabsList>
 
           <TabsContent value="login">
-            <form className="space-y-4" onSubmit={handleLogin}>
+            <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700">
                   Email
@@ -80,8 +49,6 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   type="email"
                   placeholder="Enter your email"
                   required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
                 />
               </div>
@@ -94,8 +61,6 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   type="password"
                   placeholder="Enter your password"
                   required
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
                 />
               </div>
@@ -104,14 +69,14 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   Forgot password?
                 </a>
               </div>
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Log In"}
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
+                Log In
               </Button>
             </form>
           </TabsContent>
 
           <TabsContent value="register">
-            <form className="space-y-4" onSubmit={handleRegister}>
+            <form className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-gray-700">
                   Full Name
@@ -121,8 +86,6 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   type="text"
                   placeholder="Enter your full name"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
                 />
               </div>
@@ -135,8 +98,6 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   type="email"
                   placeholder="Enter your email"
                   required
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
                 />
               </div>
@@ -149,13 +110,11 @@ export default function LoginBox({ bgColor }: LoginBoxProps) {
                   type="password"
                   placeholder="Create a password"
                   required
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
                   className="bg-white/70 border-white/60 focus:border-white"
                 />
               </div>
-              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800" disabled={isLoading}>
-                {isLoading ? "Creating account..." : "Create Account"}
+              <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
+                Create Account
               </Button>
               <p className="text-xs text-center text-gray-600">
                 By signing up, you agree to our Terms of Service and Privacy Policy
