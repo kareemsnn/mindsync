@@ -4,3 +4,7 @@ results/
 *.pth
 *.safetensors
 trained_PersonalityLM_best/
+*.pth
+*.csv
+train.log
+trained_customGNN.pth

@@ -16,6 +16,19 @@ from huggingface_hub import hf_hub_download, snapshot_download
 
 load_dotenv()
 
+
+class UserResponses(BaseModel):
+    id: int
+    list: List[str]
+
+class GroupingRequest(BaseModel):
+    users: List[UserResponses]
+
+class ClassificationRequest(BaseModel):
+    user_id: int
+    texts: List[str]
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # on startup cache the model
@@ -25,7 +38,7 @@ async def lifespan(app: FastAPI):
         print("Downloading models from HuggingFace...")
         gnn_path = hf_hub_download(
             repo_id="mmannan17/mindsync",
-            filename="trained_customGNN_best.pth",
+            filename="trained_customGNN.pth",
             local_dir=".",
             token=os.environ.get("HF_TOKEN")
         )
@@ -130,21 +143,14 @@ async def run_gnn(embeddings: np.ndarray, user_ids: list):  # Add parameters her
     return {"embeddings": refined_embedding, "user_ids": user_ids}  # Return the same user_ids
 
 
-class UserResponses(BaseModel):
-    id: int
-    list: List[str]
-
-class GroupingRequest(BaseModel):
-    users: List[UserResponses]
-
 @app.post("/groupUsers")
-async def group_users(request: GroupingRequest):  # Add type hint
+async def group_users(request: GroupingRequest):
     try:
         # 1. Process all users
-        embeddings, user_ids = process_users(request.users)  # Changed from request.texts
+        embeddings, user_ids = process_users(request.users)
         
         # 2. Run GNN with the processed data
-        gnn_results = await run_gnn(embeddings, user_ids)  # Pass the parameters
+        gnn_results = await run_gnn(embeddings, user_ids)
         
         # 3. Genetic Algorithm
         ga = GeneticAlgorithm(
@@ -159,25 +165,34 @@ async def group_users(request: GroupingRequest):  # Add type hint
         # 4. Format groups
         groups = {}
         for uid, grp in zip(user_ids, list(best_individual)):
-            groups.setdefault(grp, []).append(uid)
+            groups.setdefault(int(grp), []).append(uid)
+        
+        # 5. Create groups and add members
+        for group_number in groups:
+            # First create the group
+            group_result = supabase.table("groups").insert({
+                "created_at": "now()",
+            }).execute()
             
-        for group in groups:
-            for uid in groups[group]:
+            # Get the created group's ID
+            group_id = group_result.data[0]['id']
+            
+            # Add members to the group
+            for user_id in groups[group_number]:
                 supabase.table("group_members").insert({
-                    "group_id": group,
-                    "user_id": uid
+                    "group_id": group_id,
+                    "user_id": user_id,
+                    "created_at": "now()"
                 }).execute()
 
-        return {"success": True}
+        return {
+            "status": 200,
+            "groups": {str(k): v for k, v in groups.items()}
+        }
 
     except Exception as e:
+        print(f"Error in group_users: {str(e)}")  # Add logging
         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-class ClassificationRequest(BaseModel):
-    user_id: int
-    texts: List[str]
 
 
 
