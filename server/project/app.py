@@ -12,22 +12,21 @@ from torch_geometric.data import Data
 from contextlib import asynccontextmanager
 from sentence_transformers import SentenceTransformer
 import math
+from uuid import UUID
 from huggingface_hub import hf_hub_download, snapshot_download
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-
-class UserResponses(BaseModel):
-    id: int
-    list: List[str]
-
-class GroupingRequest(BaseModel):
-    users: List[UserResponses]
-
-class ClassificationRequest(BaseModel):
-    user_id: int
-    texts: List[str]
-
+# Define specific allowed origins
+origins = [
+    "http://localhost:3000",
+    "https://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://127.0.0.1:3000",
+    # Add your production frontend URL here
+    "*"  # Keep as fallback, but specific origins are better
+]
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,9 +70,29 @@ async def lifespan(app: FastAPI):
     yield
     # cleanup if necessary.
     print("Shutting down")
-
+    
 # fastapi app with lifespan handler
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    expose_headers=["Content-Length"],
+    max_age=600,
+)
+
+class UserResponses(BaseModel):
+    id: UUID
+    list: List[str]
+
+class GroupingRequest(BaseModel):
+    users: List[UserResponses]
+
+class ClassificationRequest(BaseModel):
+    user_id: UUID
+    list: List[str]
 
 
 supabase: Client = create_client(
@@ -146,6 +165,19 @@ async def run_gnn(embeddings: np.ndarray, user_ids: list):  # Add parameters her
 @app.post("/groupUsers")
 async def group_users(request: GroupingRequest):
     try:
+        gc_names = [
+            "The Dream Team",
+            "Innovation Squad",
+            "Brain Trust",  
+            "Think Tank",
+            "Masterminds",
+            "Synergy Circle",
+            "Power Group",
+            "A-Team",
+            "Elite Squad",
+            "Dynamic Duo"
+        ]
+        
         # 1. Process all users
         embeddings, user_ids = process_users(request.users)
         
@@ -162,36 +194,40 @@ async def group_users(request: GroupingRequest):
         
         best_individual, _ = ga.run_genetic_algorithm(pop_size=50, n_gen=40)
         
-        # 4. Format groups
+        # 4. Format groups - convert UUIDs to strings
         groups = {}
         for uid, grp in zip(user_ids, list(best_individual)):
-            groups.setdefault(int(grp), []).append(uid)
+            # Convert UUID to string when adding to groups
+            groups.setdefault(int(grp), []).append(str(uid))
         
         # 5. Create groups and add members
         for group_number in groups:
-            # First create the group
+            group_name = gc_names[group_number % len(gc_names)]
+            
             group_result = supabase.table("groups").insert({
+                "name": group_name,
                 "created_at": "now()",
+                "welcomed": False,
+                "description": "AI-generated group based on personality matching"
             }).execute()
             
-            # Get the created group's ID
             group_id = group_result.data[0]['id']
             
-            # Add members to the group
+            # Add members - convert string back to UUID for database
             for user_id in groups[group_number]:
                 supabase.table("group_members").insert({
                     "group_id": group_id,
-                    "user_id": user_id,
-                    "created_at": "now()"
+                    "user_id": user_id,  # Supabase will handle the string UUID
+                    "joined_at": "now()"
                 }).execute()
 
         return {
-            "status": 200,
+            "tatus":200,
             "groups": {str(k): v for k, v in groups.items()}
         }
 
     except Exception as e:
-        print(f"Error in group_users: {str(e)}")  # Add logging
+        print(f"Error in group_users: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -206,11 +242,35 @@ categories = ['O','C','E','A','N']
 async def classify_user(request: ClassificationRequest):
     try:
         psychbert = PSYCHBERT()
-        aggregated_result = psychbert.aggregate_classification(request.texts)
+        user_id_str = str(request.user_id)
+        
+        aggregated_result = psychbert.aggregate_classification(request.list)
         for char in categories:
             aggregated_result['personality_results'][char] = sigmoid_scale(aggregated_result['personality_results'][char])
-        return aggregated_result
+        
+        traits_vector = {
+            'personality_results': {
+                k: float(v) for k, v in aggregated_result['personality_results'].items()
+            }
+        }
+    
+        # Update with proper where clause
+        supabase.table("profiles") \
+            .update({
+                "traits_vector": traits_vector,
+            }) \
+            .eq("user_id", user_id_str) \
+            .execute()
+
+        return {
+            "status": 200,
+            "message": "User traits vector updated successfully"
+        }
 
     except Exception as e:
+        print(f"Error in classify_user: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "cors": "enabled"}

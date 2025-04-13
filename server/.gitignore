@@ -8,3 +8,5 @@ trained_PersonalityLM_best/
 *.csv
 train.log
 trained_customGNN.pth
+runtime.txt
+
