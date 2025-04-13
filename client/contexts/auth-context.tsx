@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('profiles')
           .insert({
             user_id: supabaseUser.id,
-            email: supabaseUser.email
+            email: supabaseUser.email,
           })
         
         if (insertError) {
@@ -215,15 +215,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('user_id', data.user.id)
         .maybeSingle()
-      
       // Only create a profile if it doesn't exist yet and there was no network error
       if (!existingProfile && !fetchError) {
+        console.log("name", name)
         // Create the profile record
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             user_id: data.user.id,
-            email: email
+            email: email,
+            full_name: name 
           })
         
         if (profileError) {
@@ -269,6 +270,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsUpdating(true)
     
     try {
+      // Add debug logging for image data
+      if (data.image_url) {
+        console.log("Updating profile with image_url, length:", data.image_url.length);
+        // Log the first and last few characters
+        const truncatedUrl = data.image_url.substring(0, 50) + "..." + data.image_url.substring(data.image_url.length - 10);
+        console.log("Image URL starts with:", truncatedUrl);
+      }
+      
       const { error } = await supabase
         .from('profiles')
         .update(data)

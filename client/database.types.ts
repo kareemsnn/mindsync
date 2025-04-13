@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       answers: {
@@ -99,6 +124,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          expires_at: string | null
           id: number
           name: string
         }
@@ -106,6 +132,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: number
           name: string
         }
@@ -113,6 +140,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: number
           name?: string
         }
@@ -155,30 +183,36 @@ export type Database = {
           bio: string | null
           describe: string[] | null
           email: string | null
+          full_name: string | null
           id: number
           image_url: string | null
           interests: string[] | null
           is_onboarded: boolean | null
+          traits_vector: Json | null
           user_id: string | null
         }
         Insert: {
           bio?: string | null
           describe?: string[] | null
           email?: string | null
+          full_name?: string | null
           id?: number
           image_url?: string | null
           interests?: string[] | null
           is_onboarded?: boolean | null
+          traits_vector?: Json | null
           user_id?: string | null
         }
         Update: {
           bio?: string | null
           describe?: string[] | null
           email?: string | null
+          full_name?: string | null
           id?: number
           image_url?: string | null
           interests?: string[] | null
           is_onboarded?: boolean | null
+          traits_vector?: Json | null
           user_id?: string | null
         }
         Relationships: []
@@ -186,16 +220,19 @@ export type Database = {
       questions: {
         Row: {
           created_at: string | null
+          expires_at: string | null
           id: number
           question: string
         }
         Insert: {
           created_at?: string | null
+          expires_at?: string | null
           id?: number
           question: string
         }
         Update: {
           created_at?: string | null
+          expires_at?: string | null
           id?: number
           question?: string
         }
@@ -261,6 +298,10 @@ export type Database = {
       l2_normalize: {
         Args: { "": unknown } | { "": unknown } | { "": string }
         Returns: unknown
+      }
+      set_group_expiration: {
+        Args: { group_id_param: number; days_from_now?: number }
+        Returns: undefined
       }
       sparsevec_out: {
         Args: { "": unknown }
@@ -414,6 +455,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
