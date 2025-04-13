@@ -8,16 +8,26 @@ import Hero from "@/components/hero";
 import Features from "@/components/features";
 import CallToAction from "@/components/call-to-action";
 import Footer from "@/components/footer";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [started, setStarted] = useState(false);
-  
+  const { user } = useAuth();
+  const router = useRouter();
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  }, [user, router]);
 
   return (
     <div className="min-h-screen bg-background">

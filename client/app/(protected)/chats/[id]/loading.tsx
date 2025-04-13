@@ -1,42 +1,45 @@
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Separator } from "@/components/ui/separator"
+
 export default function Loading() {
   return (
-    <div className="flex h-[calc(100vh-120px)] flex-col">
-      {/* Chat header */}
-      <div className="border-b p-4 flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse"></div>
-        <div>
-          <div className="h-5 w-48 bg-gray-200 rounded-md animate-pulse mb-1"></div>
-          <div className="h-3 w-32 bg-gray-200 rounded-md animate-pulse"></div>
-        </div>
-      </div>
-
-      {/* Chat messages */}
-      <div className="flex-1 p-4 space-y-6 overflow-y-auto">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-            {i % 2 !== 0 && (
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse mr-2 shrink-0"></div>
-            )}
-            <div 
-              className={`max-w-[80%] p-4 rounded-lg ${
-                i % 2 === 0 ? 'rounded-tr-none bg-gray-200 animate-pulse' : 'rounded-tl-none bg-gray-200 animate-pulse'
-              }`}
-            >
-              <div className="h-4 w-full bg-gray-300 rounded-md animate-pulse mb-2"></div>
-              <div className="h-4 w-5/6 bg-gray-300 rounded-md animate-pulse mb-2"></div>
-              <div className="h-4 w-4/6 bg-gray-300 rounded-md animate-pulse"></div>
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
+      <Card className="flex flex-col h-full">
+        <CardHeader className="pb-3 border-b">
+          <div className="flex justify-between items-start">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-12" />
+              </div>
             </div>
-            {i % 2 === 0 && (
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse ml-2 shrink-0"></div>
-            )}
+            <Skeleton className="h-8 w-8 rounded-full" />
           </div>
-        ))}
-      </div>
-
-      {/* Chat input */}
-      <div className="border-t p-4">
-        <div className="h-12 w-full bg-gray-200 rounded-md animate-pulse"></div>
-      </div>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-auto p-4 space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className={`flex ${i % 2 === 0 ? "justify-start" : "justify-end"}`}>
+              <div className={`flex ${i % 2 === 0 ? "flex-row" : "flex-row-reverse"} max-w-[80%] gap-2`}>
+                {i % 2 === 0 && <Skeleton className="h-8 w-8 rounded-full" />}
+                <div>
+                  {i % 2 === 0 && <Skeleton className="h-3 w-24 mb-1" />}
+                  <Skeleton className={`h-16 ${i % 2 === 0 ? "w-64" : "w-48"} rounded-lg`} />
+                  <Skeleton className="h-3 w-12 mt-1 ml-auto" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+        <Separator />
+        <div className="p-4">
+          <div className="flex gap-2">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-20" />
+          </div>
+        </div>
+      </Card>
     </div>
   )
 } 

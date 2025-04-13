@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Home, Users, Calendar, MessageSquare, User } from "lucide-react"
+import { Home, Users, Calendar, User } from "lucide-react"
 
 const routes = [
   {
@@ -26,12 +26,6 @@ const routes = [
     color: "text-pink-700",
   },
   {
-    label: "Chats",
-    icon: MessageSquare,
-    color: "text-orange-500",
-    href: "/chats",
-  },
-  {
     label: "Profile",
     icon: User,
     href: "/profile",
@@ -43,7 +37,7 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="flex h-full w-full flex-col border-r bg-background md:w-60">
+    <div className="h-full w-60 flex flex-col border-r bg-background shadow-sm">
       <div className="flex h-14 items-center border-b px-3 py-4">
         <Link href="/dashboard" className="flex items-center gap-2">
           <span className="font-bold text-xl">mindsync</span>

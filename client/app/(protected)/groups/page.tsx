@@ -5,81 +5,37 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MessageSquare, Users } from "lucide-react"
-import Link from "next/link"
+import { MessageSquare, Users, Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
+import { useGroups } from "@/hooks/use-group-data"
 
-// Mock data for active groups
-const activeGroups = [
-  {
-    id: 1,
-    name: "AI Ethics Enthusiasts",
-    theme: "Technology & Innovation",
-    members: [
-      { id: 1, name: "Alex Johnson", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 2, name: "Jamie Smith", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 3, name: "Taylor Brown", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 4, name: "Jordan Lee", avatar: "/placeholder.svg?height=40&width=40" },
-    ],
-    messageCount: 24,
-    lastActive: "2 hours ago",
-  },
-  {
-    id: 2,
-    name: "Digital Wellness Group",
-    theme: "Technology & Innovation",
-    members: [
-      { id: 5, name: "Casey Wilson", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 6, name: "Riley Davis", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 7, name: "Avery Miller", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 8, name: "Morgan Taylor", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 9, name: "Quinn Roberts", avatar: "/placeholder.svg?height=40&width=40" },
-    ],
-    messageCount: 36,
-    lastActive: "30 minutes ago",
-  },
-  {
-    id: 3,
-    name: "Future Tech Visionaries",
-    theme: "Technology & Innovation",
-    members: [
-      { id: 10, name: "Sam Chen", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 11, name: "Drew Patel", avatar: "/placeholder.svg?height=40&width=40" },
-      { id: 12, name: "Reese Kim", avatar: "/placeholder.svg?height=40&width=40" },
-    ],
-    messageCount: 18,
-    lastActive: "1 day ago",
-  },
-]
-
-// Mock data for past groups
-const pastGroups = [
-  {
-    id: 4,
-    name: "Personal Growth Circle",
-    theme: "Personal Growth & Learning",
-    members: 5,
-    messageCount: 87,
-    date: "May 1 - May 7, 2023",
-  },
-  {
-    id: 5,
-    name: "Productivity Masters",
-    theme: "Work & Productivity",
-    members: 4,
-    messageCount: 62,
-    date: "April 24 - April 30, 2023",
-  },
-  {
-    id: 6,
-    name: "Creative Minds",
-    theme: "Arts & Creativity",
-    members: 6,
-    messageCount: 103,
-    date: "April 17 - April 23, 2023",
-  },
-]
 
 export default function GroupsPage() {
+  const { user } = useAuth()
+  const { 
+    activeGroups, 
+    pastGroups, 
+    isLoading, 
+    error 
+  } = useGroups(user?.id)
+
+  const formatLastActive = (timestamp: string | null): string => {
+    if (!timestamp) return 'No activity'
+    
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMins / 60)
+    const diffDays = Math.floor(diffHours / 24)
+    
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`
+    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -94,90 +50,130 @@ export default function GroupsPage() {
         </TabsList>
 
         <TabsContent value="active" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activeGroups.map((group) => (
-              <Card key={group.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle>{group.name}</CardTitle>
-                      <CardDescription>
-                        <Badge variant="outline" className="mt-1">
-                          {group.theme}
-                        </Badge>
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      {group.messageCount}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium mb-2">Members</h3>
-                      <div className="flex -space-x-2">
-                        {group.members.map((member) => (
-                          <Avatar key={member.id} className="border-2 border-background h-8 w-8">
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                        ))}
+          {isLoading ? (
+            <div className="flex justify-center items-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="text-center p-6 text-destructive">
+              <p>Error loading groups: {error.message}</p>
+            </div>
+          ) : activeGroups.length === 0 ? (
+            <div className="text-center p-12 border rounded-lg">
+              <h3 className="text-lg font-medium mb-2">No active groups found</h3>
+              <p className="text-muted-foreground">You are not currently a member of any groups.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {activeGroups.map((group) => (
+                <Card key={group.id}>
+                  <CardHeader>
+                    <CardTitle>{group.name}</CardTitle>
+                    <CardDescription>
+                      <Badge variant="outline" className="mt-1">
+                        {group.description || "Group Chat"}
+                      </Badge>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Members</h3>
+                        <div className="flex -space-x-2 overflow-hidden">
+                          {group.members.slice(0, 5).map((member) => (
+                            <Avatar key={member.id} className="border-2 border-background h-8 w-8">
+                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {group.members.length > 5 && (
+                            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs border-2 border-background">
+                              +{group.members.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Users className="h-4 w-4 mr-2" />
+                        <span>{group.members.length} members</span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          {group.lastActive ? `Last active ${formatLastActive(group.lastActive)}` : 'No activity yet'}
+                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>{group.members.length} members</span>
-                      <span className="mx-2">•</span>
-                      <span>Last active {group.lastActive}</span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full">
-                    <Link href={`/chats/${group.id}`}>Join Chat</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                  <CardFooter>
+                    <GroupChatLink groupId={group.id} />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="past" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {pastGroups.map((group) => (
-              <Card key={group.id}>
-                <CardHeader>
-                  <CardTitle>{group.name}</CardTitle>
-                  <CardDescription>
-                    <Badge variant="outline" className="mt-1">
-                      {group.theme}
-                    </Badge>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>{group.members} members</span>
-                      <span className="mx-2">•</span>
-                      <MessageSquare className="h-4 w-4 mr-1" />
-                      <span>{group.messageCount} messages</span>
+          {isLoading ? (
+            <div className="flex justify-center items-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : pastGroups.length === 0 ? (
+            <div className="text-center p-12 border rounded-lg">
+              <h3 className="text-lg font-medium mb-2">No past groups found</h3>
+              <p className="text-muted-foreground">You have not participated in any past groups.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {pastGroups.map((group) => (
+                <Card key={group.id}>
+                  <CardHeader>
+                    <CardTitle>{group.name}</CardTitle>
+                    <CardDescription>
+                      <Badge variant="outline" className="mt-1">
+                        {group.description || "Group Chat"}
+                      </Badge>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm">
+                        <Users className="h-4 w-4 mr-2" />
+                        <span>{group.members.length} members</span>
+                        <span className="mx-2">•</span>
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        <span>{group.messageCount} messages</span>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{group.date}</p>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" asChild className="w-full">
-                    <Link href={`/chats/${group.id}`}>View Archive</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                  <CardFooter>
+                    <GroupChatLink groupId={group.id} isArchived={true} />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+const GroupChatLink = ({ groupId, isArchived = false }: { groupId: number, isArchived?: boolean }) => {
+  const router = useRouter()
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    router.push(`/chats/${groupId}`)
+  }
+  
+  return (
+    <Button 
+      onClick={handleClick} 
+      variant={isArchived ? "outline" : "default"} 
+      className="w-full"
+    >
+      <MessageSquare className="h-4 w-4 mr-2" />
+      {isArchived ? "View Archive" : "Open Chat"}
+    </Button>
   )
 }
