@@ -1,0 +1,11 @@
+class UserResponses(BaseModel):
+    id: int
+    list: List[str]
+
+class GroupingRequest(BaseModel):
+    users: List[UserResponses]
+
+class ClassificationRequest(BaseModel):
+    user_id: int
+    texts: List[str]
+
