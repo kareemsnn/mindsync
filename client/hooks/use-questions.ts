@@ -184,7 +184,7 @@ export const useQuestions = (userId?: string) => {
         throw new Error('API URL is not configured. Please set NEXT_PUBLIC_HEROKU_API_URL.');
       }
 
-      const response = await fetch(`${apiUrl}/submit-answers`, {
+      const response = await fetch(`${apiUrl}/classifyUser`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

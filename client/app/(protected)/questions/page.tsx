@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Check, Clock, Send } from "lucide-react"
+import { Check, Clock, Send, Brain } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import Loading from "@/app/(protected)/questions/loading"
 import { useQuestions } from "@/hooks/use-questions"
@@ -73,6 +73,7 @@ export default function QuestionsPage() {
   const { user } = useAuth()
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null)
   const [response, setResponse] = useState("")
+  const [isClassified, setIsClassified] = useState(false)
   const {
     questions,
     theme,
@@ -81,7 +82,9 @@ export default function QuestionsPage() {
     progress,
     isLoading,
     submitAnswer,
-    isSubmitting
+    isSubmitting,
+    handleClassification,
+    isClassifying
   } = useQuestions(user?.id)
 
   // Function to normalize response by removing double quotations
@@ -98,6 +101,14 @@ export default function QuestionsPage() {
       setResponse("")
     }
   }
+
+  const handleSubmitAssessment = async () => {
+    await handleClassification();
+    setIsClassified(true);
+  }
+
+  // Check if all questions have been answered
+  const allQuestionsAnswered = questions.length > 0 && questions.every(q => q.answered);
 
   if (isLoading) {
     return <Loading />
@@ -177,7 +188,7 @@ export default function QuestionsPage() {
                         setActiveQuestion(q.id)
                         setResponse(q.answer || "")
                       }}
-                      disabled={isExpired}
+                      disabled={isExpired || isClassified}
                     >
                       Edit Response
                     </Button>
@@ -194,7 +205,7 @@ export default function QuestionsPage() {
                       </Button>
                       <Button 
                         onClick={handleSubmitResponse} 
-                        disabled={!response.trim() || isExpired || isSubmitting}
+                        disabled={!response.trim() || isExpired || isSubmitting || isClassified}
                       >
                         {isSubmitting ? (
                           "Submitting..."
@@ -206,7 +217,10 @@ export default function QuestionsPage() {
                       </Button>
                     </div>
                   ) : (
-                    <Button onClick={() => setActiveQuestion(q.id)} disabled={isExpired}>
+                    <Button 
+                      onClick={() => setActiveQuestion(q.id)} 
+                      disabled={isExpired || isClassified}
+                    >
                       {q.answered ? "Edit Response" : "Answer Question"}
                     </Button>
                   )}
@@ -214,6 +228,27 @@ export default function QuestionsPage() {
               </Card>
             ))}
           </div>
+
+          {/* Submit Personality Assessment Button */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-center">
+                <Button 
+                  size="lg" 
+                  className="w-full sm:w-auto"
+                  disabled={!allQuestionsAnswered || isExpired || isClassified || isClassifying}
+                  onClick={handleSubmitAssessment}
+                >
+                  <Brain className="mr-2 h-5 w-5" />
+                  {isClassifying 
+                    ? "Processing..." 
+                    : isClassified 
+                      ? "Personality Assessment Submitted" 
+                      : "Submit Personality Assessment"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="previous" className="space-y-6">
