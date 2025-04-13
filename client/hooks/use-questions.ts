@@ -184,25 +184,35 @@ export const useQuestions = (userId?: string) => {
         throw new Error('API URL is not configured. Please set NEXT_PUBLIC_HEROKU_API_URL.');
       }
 
-      const response = await fetch(`${apiUrl}/classifyUser`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          texts: answers.map(a => ({ answer: a.answer }))
-        }),
-      });
+      try {
+        const response = await fetch(`${apiUrl}/classifyUser`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: userId,
+            texts: answers.map(a => ({ answer: a.answer }))
+          }),
+          mode: 'cors',
+          credentials: 'include'
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
-        console.error("Classification API Error:", response.status, errorData);
-        throw new Error(errorData.message || 'Failed to submit answers for classification');
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `HTTP error: ${response.status}` }));
+          console.error("Classification API Error:", response.status, errorData);
+          throw new Error(errorData.message || `Failed to submit answers for classification (Status: ${response.status})`);
+        }
+
+        const data = await response.json();
+        return { status: data.status || 200 };
+      } catch (error) {
+        console.error("Classification request failed:", error);
+        if (error instanceof TypeError && error.message.includes('NetworkError')) {
+          throw new Error('Network error: The server is unreachable or CORS is blocking the request');
+        }
+        throw error;
       }
-
-      const data = await response.json();
-      return { status: data.status || 200 };
     },
     onSuccess: async (data) => {
       console.log("Classification successful:", data);

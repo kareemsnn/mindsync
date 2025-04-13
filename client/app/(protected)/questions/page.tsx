@@ -103,8 +103,13 @@ export default function QuestionsPage() {
   }
 
   const handleSubmitAssessment = async () => {
-    await handleClassification();
-    setIsClassified(true);
+    try {
+      await handleClassification();
+      setIsClassified(true);
+    } catch (error) {
+      console.error("Error during assessment submission:", error);
+      // Don't set isClassified to true if there was an error
+    }
   }
 
   // Check if all questions have been answered
@@ -161,7 +166,24 @@ export default function QuestionsPage() {
                   <CardDescription>{q.question}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {q.answered && activeQuestion !== q.id ? (
+                  {activeQuestion === q.id ? (
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Type your response here..."
+                        className="min-h-[120px]"
+                        value={response}
+                        onChange={(e) => setResponse(e.target.value)}
+                      />
+                      {!response.trim() && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/80 pointer-events-none">
+                          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                            <Send className="h-8 w-8" />
+                            <p>Type your response here</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : q.answered ? (
                     <div className="bg-muted/50 p-4 rounded-md">
                       <div className="flex items-start gap-2">
                         <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
@@ -171,28 +193,14 @@ export default function QuestionsPage() {
                         </div>
                       </div>
                     </div>
-                  ) : activeQuestion === q.id ? (
-                    <Textarea
-                      placeholder="Type your response here..."
-                      className="min-h-[120px]"
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                    />
-                  ) : null}
+                  ) : (
+                    <div className="p-4 text-muted-foreground italic">
+                      Click "Answer Question" to provide your response.
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
-                  {q.answered && activeQuestion !== q.id ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setActiveQuestion(q.id)
-                        setResponse(q.answer || "")
-                      }}
-                      disabled={isExpired || isClassified}
-                    >
-                      Edit Response
-                    </Button>
-                  ) : activeQuestion === q.id ? (
+                  {activeQuestion === q.id ? (
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
@@ -216,12 +224,26 @@ export default function QuestionsPage() {
                         )}
                       </Button>
                     </div>
-                  ) : (
-                    <Button 
-                      onClick={() => setActiveQuestion(q.id)} 
+                  ) : q.answered ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setActiveQuestion(q.id)
+                        setResponse(q.answer || "")
+                      }}
                       disabled={isExpired || isClassified}
                     >
-                      {q.answered ? "Edit Response" : "Answer Question"}
+                      Edit Response
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        setActiveQuestion(q.id)
+                        setResponse("")
+                      }} 
+                      disabled={isExpired || isClassified}
+                    >
+                      Answer Question
                     </Button>
                   )}
                 </CardFooter>
