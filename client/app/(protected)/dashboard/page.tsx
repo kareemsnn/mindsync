@@ -10,16 +10,19 @@ import Link from "next/link"
 import { useGroups } from "@/hooks/use-group-data"
 import { useQuestions } from "@/hooks/use-questions"
 import Loading from "./loading"
+import { useRouter } from "next/navigation"
 
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const { activeGroups, isLoading: groupsLoading } = useGroups(user?.id)
   const { 
     questions, 
     theme, 
     timeLeft, 
     expiryDate: fdateExpiry,
+    isExpired,
     progress,
     isLoading: questionsLoading 
   } = useQuestions(user?.id)
@@ -157,7 +160,7 @@ export default function DashboardPage() {
                     <p className="text-sm italic">Your response has been submitted.</p>
                   </div>
                 ) : (
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <Button variant="outline" disabled={isExpired} size="sm" className={`mt-2 ${isExpired ? "opacity-50 cursor-not-allowed" : ""}`} asChild>
                     <Link href="/questions">Answer Question</Link>
                   </Button>
                 )}
