@@ -9,8 +9,7 @@ import { Calendar, Clock, MessageCircle, Users } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 
-// Mock data for the dashboard
-const mockDaysLeft = 2
+
 const mockActiveGroups = 3
 
 type Question = {
@@ -29,22 +28,25 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [expires_at, setExpires_at] = useState<string>("")
   const [timeLeft, setTimeLeft] = useState<string>("")
+  const [fdateExpiry, setFdateExpiry] = useState<string>("")
 
   // Calculate time left
   const calculateTimeLeft = () => {
-    const targetDate = new Date(expires_at)
+    if (!expires_at) return "Loading...";
+    
+    const targetDate = new Date(expires_at);
     const now = new Date();
     const diff = targetDate.getTime() - now.getTime();
-  
+
     // If the difference is less than or equal to zero, time is up
     if (diff <= 0) {
       return "Time's up for this week's questions";
     }
-  
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
+
     if (days > 0) {
       return `${days} day${days > 1 ? 's' : ''} left to answer`;
     } else if (hours > 0) {
@@ -70,12 +72,23 @@ export default function DashboardPage() {
         // Get expires_at and theme from the first question
         if (questionsData && questionsData.length > 0) {
           const firstQuestion = questionsData[0] as any;
-          if (firstQuestion.expires_at) {
-            setExpires_at(firstQuestion.expires_at);
-          }
           if (firstQuestion.theme) {
             setTheme(firstQuestion.theme);
           }
+        }
+
+        // Fetch the expiration date from fdate table
+        const { data: fdateData, error: fdateError } = await supabase
+          .from('fdate')
+          .select('*')
+          .order('id', { ascending: false })
+          .limit(1)
+          
+        if (fdateError) throw fdateError
+        
+        if (fdateData && fdateData.length > 0) {
+          setFdateExpiry(fdateData[0].expire_date);
+          setExpires_at(fdateData[0].expire_date); // Set this to use with your existing functions
         }
 
         // Fetch user's answers for these questions
@@ -191,6 +204,11 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-sm font-medium">Time Left</p>
                     <p className="text-2xl font-bold">{timeLeft.includes("day") ? timeLeft.split(" ")[0] : "< 1d"}</p>
+                    {fdateExpiry && (
+                      <p className="text-xs text-muted-foreground">
+                        Expires on {new Date(fdateExpiry).toLocaleDateString()} at {new Date(fdateExpiry).toLocaleTimeString()}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
