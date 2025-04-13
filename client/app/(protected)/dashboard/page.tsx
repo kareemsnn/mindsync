@@ -8,176 +8,38 @@ import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MessageCircle, Users } from "lucide-react"
 import Link from "next/link"
 import { useGroups } from "@/hooks/use-group-data"
-import { supabase } from "@/lib/supabase"
-import Loading from "../loading"
+import { useQuestions } from "@/hooks/use-questions"
+import Loading from "./loading"
+import { useRouter } from "next/navigation"
 
-// Mock data for the dashboard
-const mockDaysLeft = 2
-const mockActiveGroups = 3
-
-type Question = {
-  id: number
-  question: string
-  created_at: string | null
-  answered: boolean
-  answer?: string
-}
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [theme, setTheme] = useState<string>("General")
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expires_at, setExpires_at] = useState<string>("")
-  const [timeLeft, setTimeLeft] = useState<string>("")
-  const [newMessagesCount, setNewMessagesCount] = useState(0)
-  
-  // Fetch user's groups
+  const router = useRouter()
+  const { activeGroups, isLoading: groupsLoading } = useGroups(user?.id)
   const { 
-    activeGroups, 
-    isLoading: isLoadingGroups 
-  } = useGroups(user?.id)
-
-  // Fetch new messages count
-  useEffect(() => {
-    async function fetchNewMessages() {
-      if (!user?.id) return;
-      
-      try {
-        // Get last 24 hours
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-        
-        // Get all groups the user is in
-        const { data: memberData } = await supabase
-          .from('group_members')
-          .select('group_id')
-          .eq('user_id', user.id);
-          
-        if (!memberData || memberData.length === 0) {
-          setNewMessagesCount(0);
-          return;
-        }
-        
-        const groupIds = memberData
-          .map(m => m.group_id)
-          .filter(Boolean);
-          
-        // Count messages in these groups from the last 24 hours
-        const { count, error } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .in('group_id', groupIds)
-          .gt('created_at', oneDayAgo.toISOString());
-          
-        if (error) {
-          console.error('Error fetching new messages count:', error);
-          return;
-        }
-        
-        setNewMessagesCount(count || 0);
-      } catch (error) {
-        console.error('Error fetching new messages:', error);
-      }
-    }
-    
-    fetchNewMessages();
-  }, [user]);
-
-  // Calculate time left
-  const calculateTimeLeft = () => {
-    const targetDate = new Date(expires_at)
-    const now = new Date();
-    const diff = targetDate.getTime() - now.getTime();
+    questions, 
+    theme, 
+    timeLeft, 
+    expiryDate: fdateExpiry,
+    isExpired,
+    progress,
+    isLoading: questionsLoading 
+  } = useQuestions(user?.id)
   
-    // If the difference is less than or equal to zero, time is up
-    if (diff <= 0) {
-      return "Time's up for this week's questions";
-    }
-  
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} left to answer`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''} left`;
-    } else {
-      return `${minutes} minute${minutes > 1 ? 's' : ''} left`;
-    }
-  }
+  const [currentTime, setCurrentTime] = useState(new Date())
 
-  // Fetch theme and questions from Supabase
-  useEffect(() => {
-    async function fetchData() {
-      if (!user) return;
-      
-      try {
-        // Fetch questions
-        const { data: questionsData, error: questionsError } = await supabase
-          .from('questions')
-          .select('*')
-          .order('id', { ascending: true })
-        if (questionsError) throw questionsError
-        
-        // Get expires_at and theme from the first question
-        if (questionsData && questionsData.length > 0) {
-          const firstQuestion = questionsData[0] as any;
-          if (firstQuestion.expires_at) {
-            setExpires_at(firstQuestion.expires_at);
-          }
-          if (firstQuestion.theme) {
-            setTheme(firstQuestion.theme);
-          }
-        }
-
-        // Fetch user's answers for these questions
-        const { data: answersData, error: answersError } = await supabase
-          .from('answers')
-          .select('*')
-          .eq('user_id', user.id)
-          .in('question_id', questionsData.map(q => q.id))
-
-        if (answersError) throw answersError
-
-        // Combine questions with answers
-        const questionsWithAnswers = questionsData.map(question => ({
-          id: question.id,
-          question: question.question,
-          created_at: question.created_at,
-          answered: false,
-          answer: undefined,
-          ...answersData?.find(a => a.question_id === question.id && a.user_id === user.id)
-            ? {
-                answered: true,
-                answer: answersData.find(a => a.question_id === question.id)?.answer
-              }
-            : {}
-        }))
-        
-        setQuestions(questionsWithAnswers)
-        setTimeLeft(calculateTimeLeft());
-      } catch (error) {
-        console.error('Error loading data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-    
-    fetchData()
-  }, [user])
+  // Calculate total messages across all active groups
+  const totalMessages = activeGroups.reduce((sum, group) => sum + group.messageCount, 0)
 
   // Update the time every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
-      setTimeLeft(calculateTimeLeft())
     }, 60000)
 
     return () => clearInterval(timer)
-  }, [expires_at])
+  }, [])
 
   // Calculate days until Friday (5 is Friday in JavaScript's Date.getDay())
   const getDaysUntilFriday = () => {
@@ -188,11 +50,7 @@ export default function DashboardPage() {
   const daysUntilFriday = getDaysUntilFriday()
   const isGroupChatDay = currentTime.getDay() === 5 // Friday
 
-  // Calculate progress for the progress bar
-  const answeredCount = questions.filter(q => q.answered).length
-  const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0
-
-  if (loading) {
+  if (questionsLoading || groupsLoading) {
     return <Loading />
   }
 
@@ -230,7 +88,7 @@ export default function DashboardPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">
-                  {answeredCount} of {questions.length} questions answered
+                  {questions.filter(q => q.answered).length} of {questions.length} questions answered
                 </span>
                 <span className="text-sm text-muted-foreground">{progress.toFixed(0)}%</span>
               </div>
@@ -246,6 +104,11 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-sm font-medium">Time Left</p>
                     <p className="text-2xl font-bold">{timeLeft.includes("day") ? timeLeft.split(" ")[0] : "< 1d"}</p>
+                    {fdateExpiry && (
+                      <p className="text-xs text-muted-foreground">
+                        Expires on {new Date(fdateExpiry).toLocaleDateString()} at {new Date(fdateExpiry).toLocaleTimeString()}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -269,7 +132,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">New Messages</p>
-                    <p className="text-2xl font-bold">{newMessagesCount}</p>
+                    <p className="text-2xl font-bold">{totalMessages}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -297,7 +160,7 @@ export default function DashboardPage() {
                     <p className="text-sm italic">Your response has been submitted.</p>
                   </div>
                 ) : (
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <Button variant="outline" disabled={isExpired} size="sm" className={`mt-2 ${isExpired ? "opacity-50 cursor-not-allowed" : ""}`} asChild>
                     <Link href="/questions">Answer Question</Link>
                   </Button>
                 )}
@@ -314,7 +177,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Active Groups */}
-      {isGroupChatDay && (
+      {(isGroupChatDay || activeGroups.length > 0) && (
         <Card>
           <CardHeader>
             <CardTitle>Your Active Groups</CardTitle>
@@ -323,47 +186,27 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">AI Ethics Enthusiasts</h3>
-                        <p className="text-sm text-muted-foreground">4 members • 8 messages</p>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        Join Chat
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">Digital Wellness Group</h3>
-                        <p className="text-sm text-muted-foreground">5 members • 12 messages</p>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        Join Chat
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">Future Tech Visionaries</h3>
-                        <p className="text-sm text-muted-foreground">3 members • 5 messages</p>
-                      </div>
-                      <Button size="sm" variant="outline">
-                        Join Chat
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                {activeGroups.length === 0 ? (
+                  <p className="text-muted-foreground col-span-2">No active groups found. Check back later!</p>
+                ) : (
+                  activeGroups.slice(0, 3).map((group) => (
+                    <Card key={group.id}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">{group.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {group.members.length} members • {group.messageCount} messages
+                            </p>
+                          </div>
+                          <Button size="sm" variant="outline" asChild>
+                            <Link href={`/groups/${group.id}`}>Join Chat</Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
 
               <Button asChild variant="outline" className="w-full">

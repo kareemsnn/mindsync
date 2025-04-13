@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -8,13 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Check, Clock, Send } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { supabase } from "@/lib/supabase"
-import { toast } from "sonner"
-import { Database } from "@/database.types"
 import Loading from "@/app/(protected)/questions/loading"
-
-type AnswerInsert = Database['public']['Tables']['answers']['Insert']
-type AnswerUpdate = Database['public']['Tables']['answers']['Update']
+import { useQuestions } from "@/hooks/use-questions"
 
 // Mock data for previous weeks
 const previousWeeks = [
@@ -74,169 +69,31 @@ const previousWeeks = [
   },
 ]
 
-type Question = {
-  id: number
-  question: string
-  created_at: string | null
-  answered: boolean
-  answer?: string
-}
-
 export default function QuestionsPage() {
   const { user } = useAuth()
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null)
   const [response, setResponse] = useState("")
-  const [questions, setQuestions] = useState<Question[]>([])
-  const [loading, setLoading] = useState(true)
-  const [timeLeft, setTimeLeft] = useState<string>("")
-  const [expires_at, setExpires_at] = useState<string>("")
-  const [timeUp, setTimeUp] = useState(false)
-  const [theme, setTheme] = useState<string>("General")
-
-  
-  const calculateTimeLeft = () => {
-    const targetDate = new Date(expires_at)
-    const now = new Date();
-    const diff = targetDate.getTime() - now.getTime();
-  
-    // If the difference is less than or equal to zero, time is up
-    if (diff <= 0) {
-      setTimeUp(true)
-      return "Time's up for this week's questions";
-    }
-    
-    setTimeUp(false)
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
-    if (days > 0) {
-      return `${days} day${days > 1 ? 's' : ''} left to answer`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''} left`;
-    } else {
-      return `${minutes} minute${minutes > 1 ? 's' : ''} left`;
-    }
-  }
-
-  useEffect(() => {
-    if (expires_at) {
-      const targetDate = new Date(expires_at);
-      const now = new Date();
-      setTimeUp(targetDate.getTime() - now.getTime() <= 0);
-    }
-  }, [expires_at]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft())
-    }, 60000)
-
-    setTimeLeft(calculateTimeLeft())
-
-    return () => clearInterval(timer)
-  }, [expires_at])
-
-  useEffect(() => {
-    async function loadQuestions() {
-      try {
-        const { data: questionsData, error: questionsError } = await supabase
-          .from('questions')
-          .select('*')
-          .order('id', { ascending: true })
-        if (questionsError) throw questionsError
-        
-        if (questionsData && questionsData.length > 0) {
-          const firstQuestion = questionsData[0] as any;
-          if (firstQuestion.expires_at) {
-            setExpires_at(firstQuestion.expires_at);
-          }
-          if (firstQuestion.theme) {
-            setTheme(firstQuestion.theme);
-          }
-        }
-
-        const { data: answersData, error: answersError } = await supabase
-          .from('answers')
-          .select('*')
-          .eq('user_id', user!.id)
-          .in('question_id', questionsData.map(q => q.id))
-
-        if (answersError) throw answersError
-
-        const questionsWithAnswers = questionsData.map(question => ({
-          id: question.id,
-          question: question.question,
-          created_at: question.created_at,
-          answered: answersData?.some(a => a.question_id === question.id && a.user_id === user!.id) || false,
-          answer: answersData?.find(a => a.question_id === question.id && a.user_id === user!.id)?.answer || undefined
-        }))
-        
-        setQuestions(questionsWithAnswers)
-      } catch (error) {
-        console.error('Error loading questions:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (user) {
-      loadQuestions()
-    }
-  }, [user])
+  const {
+    questions,
+    theme,
+    timeLeft,
+    isExpired,
+    progress,
+    isLoading,
+    submitAnswer,
+    isSubmitting
+  } = useQuestions(user?.id)
 
   const handleSubmitResponse = async () => {
-    if (activeQuestion !== null && response.trim() && user) {
-      try {
-        const currentQuestion = questions.find(q => q.id === activeQuestion);
-        const answerData: AnswerInsert = {
-          question_id: activeQuestion,
-          user_id: user.id,
-          answer: response.trim(),
-          created_at: new Date().toISOString()
-        };
-        
-        let error;
-        
-        if (currentQuestion?.answered) {
-          const { error: updateError } = await supabase
-            .from('answers')
-            .update({ answer: response.trim() })
-            .eq('question_id', activeQuestion)
-            .eq('user_id', user.id);
-            
-          error = updateError;
-        }
-        
-        if (!currentQuestion?.answered || error) {
-          const { error: insertError } = await supabase
-            .from('answers')
-            .insert(answerData);
-            
-          error = insertError;
-        }
-
-        if (error) throw error;
-
-        setQuestions(questions.map(q => 
-          q.id === activeQuestion 
-            ? { ...q, answered: true, answer: response.trim() } 
-            : q
-        ));
-        setActiveQuestion(null);
-        setResponse("");
-        toast.success(currentQuestion?.answered ? 'Answer updated successfully' : 'Answer submitted successfully');
-      } catch (error) {
-        console.error('Error submitting answer:', error);
-        toast.error('Error submitting answer');
-      }
+    if (activeQuestion !== null && response.trim()) {
+      const currentQuestion = questions.find(q => q.id === activeQuestion)
+      await submitAnswer(activeQuestion, response, currentQuestion?.answered)
+      setActiveQuestion(null)
+      setResponse("")
     }
   }
 
-  const answeredCount = questions.filter((q) => q.answered).length
-  const progress = (answeredCount / questions.length) * 100
-
-  if (loading) {
+  if (isLoading) {
     return <Loading />
   }
 
@@ -264,9 +121,9 @@ export default function QuestionsPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">
-                    {answeredCount} of {questions.length} questions answered
+                    {questions.filter(q => q.answered).length} of {questions.length} questions answered
                   </span>
-                  <span className="text-sm text-muted-foreground">{progress}%</span>
+                  <span className="text-sm text-muted-foreground">{progress.toFixed(0)}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
               </div>
@@ -314,7 +171,7 @@ export default function QuestionsPage() {
                         setActiveQuestion(q.id)
                         setResponse(q.answer || "")
                       }}
-                      disabled={timeUp}
+                      disabled={isExpired}
                     >
                       Edit Response
                     </Button>
@@ -329,12 +186,21 @@ export default function QuestionsPage() {
                       >
                         Cancel
                       </Button>
-                      <Button onClick={handleSubmitResponse} disabled={!response.trim() || timeUp}>
-                        <Send className="mr-2 h-4 w-4" /> Submit
+                      <Button 
+                        onClick={handleSubmitResponse} 
+                        disabled={!response.trim() || isExpired || isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          "Submitting..."
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" /> Submit
+                          </>
+                        )}
                       </Button>
                     </div>
                   ) : (
-                    <Button onClick={() => setActiveQuestion(q.id)} disabled={timeUp}>
+                    <Button onClick={() => setActiveQuestion(q.id)} disabled={isExpired}>
                       {q.answered ? "Edit Response" : "Answer Question"}
                     </Button>
                   )}

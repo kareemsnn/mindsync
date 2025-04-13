@@ -30,44 +30,75 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [registerPassword, setRegisterPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
-  const { login, register, user, isLoading } = useAuth()
+  
+  // Loading states
+  const [isLoginSubmitting, setIsLoginSubmitting] = useState(false)
+  const [isRegisterSubmitting, setIsRegisterSubmitting] = useState(false)
+  
+  // Error states
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [registerError, setRegisterError] = useState<string | null>(null)
+  const [passwordMismatch, setPasswordMismatch] = useState(false)
+  const [termsError, setTermsError] = useState(false)
+  
+  const { login, register, user } = useAuth()
   const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoginError(null)
+    setIsLoginSubmitting(true)
+    
     try {
       const { error } = await login(loginEmail, loginPassword)
       if (error) {
-        console.error("Login failed:", error)
+        setLoginError(error.message || "Failed to login. Please try again.")
         return
       }
       onClose()
       router.push(user?.profile?.is_onboarded ? "/dashboard" : "/onboarding")
     } catch (error) {
+      setLoginError("An unexpected error occurred. Please try again.")
       console.error("Login failed:", error)
+    } finally {
+      setIsLoginSubmitting(false)
     }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Reset all error states
+    setRegisterError(null)
+    setPasswordMismatch(false)
+    setTermsError(false)
+    
+    // Form validation
     if (registerPassword !== confirmPassword) {
-      // Handle password mismatch
+      setPasswordMismatch(true)
       return
     }
+    
     if (!agreeTerms) {
-      // Handle terms not agreed
+      setTermsError(true)
       return
     }
+    
+    setIsRegisterSubmitting(true)
+    
     try {
       const { error } = await register(registerName, registerEmail, registerPassword)
       if (error) {
-        console.error("Registration failed:", error)
+        setRegisterError(error.message || "Failed to create account. Please try again.")
         return
       }
       onClose()
       router.push("/onboarding")
     } catch (error) {
+      setRegisterError("An unexpected error occurred. Please try again.")
       console.error("Registration failed:", error)
+    } finally {
+      setIsRegisterSubmitting(false)
     }
   }
 
@@ -95,6 +126,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
               <TabsContent value="login">
                 <form className="space-y-4" onSubmit={handleLogin}>
+                  {loginError && (
+                    <div className="p-3 text-sm text-red-300 bg-red-900/50 border border-red-800 rounded-md">
+                      {loginError}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-white">
                       Email
@@ -107,6 +143,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       placeholder="name@example.com"
                       required
                       className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      disabled={isLoginSubmitting}
                     />
                   </div>
                   <div className="space-y-2">
@@ -121,6 +158,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       placeholder="••••••••"
                       required
                       className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      disabled={isLoginSubmitting}
                     />
                   </div>
                   <div className="flex justify-end">
@@ -131,9 +169,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   <Button 
                     type="submit" 
                     className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
-                    disabled={isLoading}
+                    disabled={isLoginSubmitting}
                   >
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isLoginSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Log In
                   </Button>
                 </form>
@@ -141,6 +179,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
               <TabsContent value="register">
                 <form className="space-y-4" onSubmit={handleRegister}>
+                  {registerError && (
+                    <div className="p-3 text-sm text-red-300 bg-red-900/50 border border-red-800 rounded-md">
+                      {registerError}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-white">
                       Full Name
@@ -153,6 +196,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       placeholder="John Doe"
                       required
                       className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      disabled={isRegisterSubmitting}
                     />
                   </div>
                   <div className="space-y-2">
@@ -167,6 +211,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       placeholder="name@example.com"
                       required
                       className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      disabled={isRegisterSubmitting}
                     />
                   </div>
                   <div className="space-y-2">
@@ -177,10 +222,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       id="register-password"
                       type="password"
                       value={registerPassword}
-                      onChange={(e) => setRegisterPassword(e.target.value)}
+                      onChange={(e) => {
+                        setRegisterPassword(e.target.value);
+                        setPasswordMismatch(false);
+                      }}
                       placeholder="••••••••"
                       required
-                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      className={`bg-primary-light border-primary/30 text-white placeholder:text-white/50 ${
+                        passwordMismatch ? "border-red-500" : ""
+                      }`}
+                      disabled={isRegisterSubmitting}
                     />
                   </div>
                   <div className="space-y-2">
@@ -191,22 +242,39 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       id="confirm-password"
                       type="password"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setPasswordMismatch(false);
+                      }}
                       placeholder="••••••••"
                       required
-                      className="bg-primary-light border-primary/30 text-white placeholder:text-white/50"
+                      className={`bg-primary-light border-primary/30 text-white placeholder:text-white/50 ${
+                        passwordMismatch ? "border-red-500" : ""
+                      }`}
+                      disabled={isRegisterSubmitting}
                     />
+                    {passwordMismatch && (
+                      <p className="text-xs text-red-400 mt-1">Passwords do not match</p>
+                    )}
                   </div>
                   <div className="flex items-start space-x-2">
                     <Checkbox
                       id="terms"
                       checked={agreeTerms}
-                      onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                      className="border-primary/30 data-[state=checked]:bg-primary data-[state=checked]:text-white"
+                      onCheckedChange={(checked) => {
+                        setAgreeTerms(checked as boolean);
+                        setTermsError(false);
+                      }}
+                      className={`border-primary/30 data-[state=checked]:bg-primary data-[state=checked]:text-white ${
+                        termsError ? "border-red-500" : ""
+                      }`}
+                      disabled={isRegisterSubmitting}
                     />
                     <Label
                       htmlFor="terms"
-                      className="text-sm font-normal text-white/80 leading-tight"
+                      className={`text-sm font-normal text-white/80 leading-tight ${
+                        termsError ? "text-red-400" : ""
+                      }`}
                     >
                       I agree to the{" "}
                       <Link href="/terms" className="underline hover:text-white">
@@ -214,12 +282,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       </Link>
                     </Label>
                   </div>
+                  {termsError && (
+                    <p className="text-xs text-red-400 mt-1">You must agree to the terms and conditions</p>
+                  )}
                   <Button 
                     type="submit" 
                     className="w-full bg-primary-medium hover:bg-primary text-white border border-primary/30" 
-                    disabled={isLoading}
+                    disabled={isRegisterSubmitting}
                   >
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isRegisterSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     Create Account
                   </Button>
                 </form>
