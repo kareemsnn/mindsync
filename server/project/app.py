@@ -11,6 +11,7 @@ import torch
 from torch_geometric.data import Data
 from contextlib import asynccontextmanager
 import math
+from huggingface_hub import hf_hub_download, snapshot_download
 
 load_dotenv()
 
@@ -19,17 +20,42 @@ async def lifespan(app: FastAPI):
     # on startup cache the model
     device = torch.device("cpu")
     try:
+        # Download models from HuggingFace
+        print("Downloading models from HuggingFace...")
+        gnn_path = hf_hub_download(
+            repo_id="mmannan17/mindsync",
+            filename="trained_customGNN_best.pth",
+            local_dir=".",
+            token=os.environ.get("HF_TOKEN")
+        )
+        
+        # Load the GNN model
         model = customGNN(input_size=768, hidden_size=512, output_size=768).to(device)
-        model.load_state_dict(torch.load("trained_customGNN.pth", map_location=device))
+        model.load_state_dict(torch.load(gnn_path, map_location=device))
         model.eval()  # model on evaluation mode
         app.state.cached_model = model
-        print("Cached model loaded successfully.")
+        
+        # Download PersonalityLM model
+        print("Downloading PersonalityLM model...")
+        personality_lm_path = snapshot_download(
+            repo_id="mmannan17/mindsync",
+            allow_patterns="trained_PersonalityLM_best/**",
+            local_dir=".",
+            token=os.environ.get("HF_TOKEN")
+        )
+        
+        # Store paths in app state for later use
+        app.state.personality_lm_path = personality_lm_path
+        
+        print("All models loaded successfully.")
     except Exception as e:
-        print("Error loading cached model:", e)
+        print("Error loading models:", e)
         app.state.cached_model = None
+        app.state.personality_lm_path = None
+        raise RuntimeError(f"Failed to load models: {str(e)}")
+    
     yield
     # cleanup if necessary.
-    
     print("Shutting down")
 
 # fastapi app with lifespan handler
@@ -102,6 +128,14 @@ async def run_gnn(embeddings: np.ndarray, user_ids: list):  # Add parameters her
     refined_embedding = refined_embedding.cpu().numpy().tolist()
     return {"embeddings": refined_embedding, "user_ids": user_ids}  # Return the same user_ids
 
+
+class UserResponses(BaseModel):
+    id: int
+    list: List[str]
+
+class GroupingRequest(BaseModel):
+    users: List[UserResponses]
+
 @app.post("/groupUsers")
 async def group_users(request: GroupingRequest):  # Add type hint
     try:
@@ -138,4 +172,29 @@ async def group_users(request: GroupingRequest):  # Add type hint
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+class ClassificationRequest(BaseModel):
+    user_id: int
+    texts: List[str]
+
+
+
+def sigmoid_scale(x, steepness=25):
+    return 1 / (1 + math.exp(-steepness * (x - 0.5)))
+
+
+categories = ['O','C','E','A','N']
+
+@app.post("/classifyUser")
+async def classify_user(request: ClassificationRequest):
+    try:
+        psychbert = PSYCHBERT()
+        aggregated_result = psychbert.aggregate_classification(request.texts)
+        for char in categories:
+            aggregated_result['personality_results'][char] = sigmoid_scale(aggregated_result['personality_results'][char])
+        return aggregated_result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
