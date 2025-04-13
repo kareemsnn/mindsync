@@ -1,4 +1,6 @@
 # MindSync
+![image](https://github.com/user-attachments/assets/0c986dcb-c45c-4354-b498-7e4897375b48)
+
 
 ## Problem Statement
 Traditional social networking often leads to surface-level connections and fragmented conversations. MindSync addresses this by facilitating meaningful interactions through a system of weekly themed questions that reveal users' personalities and interests. By grouping individuals based on their responses, MindSync fosters authentic discussions and long-term relationships, combating digital isolation and shallow engagements.
