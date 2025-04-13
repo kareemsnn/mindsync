@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(currentSession)
         
         if (currentSession?.user) {
-          await refreshUserData(currentSession.user)
+          await fetchUserProfile(currentSession.user)
         }
       } catch (error) {
         console.error('Error initializing auth:', error)
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === 'SIGNED_IN' && newSession?.user) {
             setIsLoading(true)
             try {
-              await refreshUserData(newSession.user)
+              await fetchUserProfile(newSession.user)
             } finally {
               setIsLoading(false)
             }
@@ -79,48 +79,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   
   /* 
-    refreshUserData is a function that fetches the user's profile data from the profiles table.
-    It is used to refresh the user's data when the user is signed in.
+    fetchUserProfile retrieves the user's profile data without creating new profiles
+    to avoid race conditions. Profile creation is handled during the registration process.
   */
-  const refreshUserData = async (supabaseUser: SupabaseUser) => {
+  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', supabaseUser.id)
-        .maybeSingle()
+        .single()
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user profile:', error)
         return
-      }
-      
-      // If no profile found but user exists, create a default profile
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: supabaseUser.id,
-            email: supabaseUser.email,
-          })
-        
-        if (insertError) {
-          console.error('Error creating default profile:', insertError)
-        } else {
-          // Fetch the newly created profile
-          const { data: newProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', supabaseUser.id)
-            .maybeSingle()
-          
-          setUser({
-            id: supabaseUser.id,
-            email: supabaseUser.email,
-            profile: newProfile || null,
-          })
-          return
-        }
       }
       
       setUser({
@@ -129,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile: profile || null,
       })
     } catch (error) {
-      console.error('Error refreshing user data:', error)
+      console.error('Error fetching user profile:', error)
     }
   }
 
@@ -140,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
@@ -148,29 +120,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Auth signin error:', error)
         return { error }
-      }
-      
-      // Check if profile exists
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
-      
-      // Create profile if it doesn't exist
-      if (!profile && !fetchError) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: data.user.email
-          })
-          
-        if (insertError) {
-          console.error('Error creating profile on login:', insertError)
-        }
-      } else if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error checking for profile on login:', fetchError)
       }
       
       return { error: null }
@@ -183,62 +132,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /* 
-    register is a function that registers a new user using the supabase auth service.
+    register is a function that registers a new user using the supabase auth service
+    and creates their profile directly in the profiles table.
   */
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true)
     
     try {
-      // First sign up the user with Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      console.log('Attempting to register user with email:', email)
+      
+      // Step 1: Create the user account using the built-in Supabase Auth API
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name
+            full_name: name
           }
         }
       })
       
-      if (error) {
-        console.error('Auth signup error:', error)
-        return { error }
+      if (authError) {
+        console.error('Auth signup error:', authError)
+        console.error('Auth error details:', {
+          message: authError.message,
+          status: authError.status,
+          code: authError.code,
+          details: JSON.stringify(authError, null, 2)
+        })
+        return { error: authError }
       }
       
-      if (!data.user) {
+      if (!authData || !authData.user) {
+        console.error('Auth signup failed: No user returned')
         return { error: new Error('User creation failed') }
       }
       
-      // Check if profile already exists to avoid duplicate creation
-      const { data: existingProfile, error: fetchError } = await supabase
+      console.log('Auth signup successful, creating profile...')
+      
+      // Step 2: Create the profile directly in the profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
-      // Only create a profile if it doesn't exist yet and there was no network error
-      if (!existingProfile && !fetchError) {
-        console.log("name", name)
-        // Create the profile record
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: data.user.id,
-            email: email,
-            full_name: name 
-          })
-        
-        if (profileError) {
-          console.error('Error creating profile during registration:', profileError)
-          return { error: new Error('Profile creation failed') }
-        }
-      } else if (fetchError && fetchError.code !== 'PGRST116') {
-        // Log other fetch errors that aren't just "no rows returned"
-        console.error('Error checking for existing profile:', fetchError)
+        .insert({
+          user_id: authData.user.id,
+          full_name: name,
+          email: email,
+          is_onboarded: false,
+        })
+      
+      if (profileError) {
+        console.error('Profile creation error:', profileError)
+        return { error: profileError }
       }
+      
+      console.log('Profile created successfully')
       
       return { error: null }
     } catch (err) {
       console.error('Registration error:', err)
+      // Enhanced catch block logging
+      if (err instanceof Error) {
+        console.error('Registration error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+          details: JSON.stringify(err, null, 2)
+        })
+      } else {
+        console.error('Non-Error registration exception:', typeof err, err)
+      }
       return { error: err instanceof Error ? err : new Error('Unknown error during registration') }
     } finally {
       setIsLoading(false)
@@ -270,14 +232,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsUpdating(true)
     
     try {
-      // Add debug logging for image data
-      if (data.image_url) {
-        console.log("Updating profile with image_url, length:", data.image_url.length);
-        // Log the first and last few characters
-        const truncatedUrl = data.image_url.substring(0, 50) + "..." + data.image_url.substring(data.image_url.length - 10);
-        console.log("Image URL starts with:", truncatedUrl);
-      }
-      
       const { error } = await supabase
         .from('profiles')
         .update(data)
@@ -289,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (session?.user) {
-        await refreshUserData(session.user)
+        await fetchUserProfile(session.user)
       }
     } catch (error) {
       console.error('Error updating profile:', error)
