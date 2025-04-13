@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(currentSession)
         
         if (currentSession?.user) {
-          await refreshUserData(currentSession.user)
+          await fetchUserProfile(currentSession.user)
         }
       } catch (error) {
         console.error('Error initializing auth:', error)
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === 'SIGNED_IN' && newSession?.user) {
             setIsInitializing(true)
             try {
-              await refreshUserData(newSession.user)
+              await fetchUserProfile(newSession.user)
             } finally {
               setIsInitializing(false)
             }
@@ -78,16 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
   
   /* 
-    refreshUserData is a function that fetches the user's profile data from the profiles table.
-    It is used to refresh the user's data when the user is signed in.
+    fetchUserProfile retrieves the user's profile data without creating new profiles
+    to avoid race conditions. Profile creation is handled during the registration process.
   */
-  const refreshUserData = async (supabaseUser: SupabaseUser) => {
+  const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', supabaseUser.id)
-        .maybeSingle()
+        .single()
       
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching user profile:', error)
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile: profile || null,
       })
     } catch (error) {
-      console.error('Error refreshing user data:', error)
+      console.error('Error fetching user profile:', error)
     }
   }
 
@@ -127,7 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   /* 
-    register is a function that registers a new user using the supabase auth service.
+    register is a function that registers a new user using the supabase auth service
+    and creates their profile directly in the profiles table.
   */
   const register = async (name: string, email: string, password: string) => {
     try {
@@ -137,23 +138,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: {
           data: {
-            name
+            full_name: name
           }
         }
       })
       
       if (error) {
         console.error('Auth signup error:', error)
+        console.error('Auth error details:', {
+          message: error.message,
+          status: error.status,
+          code: error.code,
+          details: JSON.stringify(error, null, 2)
+        })
         return { error }
       }
       
-      if (!data.user) {
+      if (!data || !data.user) {
+        console.error('Auth signup failed: No user returned')
         return { error: new Error('User creation failed') }
       }
       
       return { error: null }
     } catch (err) {
       console.error('Registration error:', err)
+      // Enhanced catch block logging
+      if (err instanceof Error) {
+        console.error('Registration error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+          details: JSON.stringify(err, null, 2)
+        })
+      } else {
+        console.error('Non-Error registration exception:', typeof err, err)
+      }
       return { error: err instanceof Error ? err : new Error('Unknown error during registration') }
     }
   }
@@ -191,7 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (session?.user) {
-        await refreshUserData(session.user)
+        await fetchUserProfile(session.user)
       }
     } catch (error) {
       console.error('Error updating profile:', error)
