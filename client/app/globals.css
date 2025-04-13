@@ -95,3 +95,41 @@
 .bg-primary-dark {
   @apply bg-primary/30 dark:bg-primary/40 backdrop-blur-md;
 }
+
+/* Chat message bubble styles */
+.message-bubble-user {
+  position: relative;
+}
+
+.message-bubble-user::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: -8px;
+  width: 14px;
+  height: 14px;
+  background: hsl(var(--primary));
+  clip-path: polygon(0 0, 0% 100%, 100% 100%);
+  transform: translateY(-2px);
+}
+
+.message-bubble-other {
+  position: relative;
+}
+
+.message-bubble-other::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: -8px;
+  width: 14px;
+  height: 14px;
+  background: hsl(var(--muted));
+  clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+  transform: translateY(-2px);
+}
+
+/* For dark mode adjustments */
+.dark .message-bubble-other::after {
+  background: hsl(var(--muted));
+}

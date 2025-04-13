@@ -99,6 +99,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          expires_at: string | null
           id: number
           name: string
         }
@@ -106,6 +107,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: number
           name: string
         }
@@ -113,6 +115,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: number
           name?: string
         }
@@ -186,16 +189,19 @@ export type Database = {
       questions: {
         Row: {
           created_at: string | null
+          expires_at: string | null
           id: number
           question: string
         }
         Insert: {
           created_at?: string | null
+          expires_at?: string | null
           id?: number
           question: string
         }
         Update: {
           created_at?: string | null
+          expires_at?: string | null
           id?: number
           question?: string
         }
@@ -261,6 +267,10 @@ export type Database = {
       l2_normalize: {
         Args: { "": unknown } | { "": unknown } | { "": string }
         Returns: unknown
+      }
+      set_group_expiration: {
+        Args: { group_id_param: number; days_from_now?: number }
+        Returns: undefined
       }
       sparsevec_out: {
         Args: { "": unknown }

@@ -32,14 +32,6 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     const isOnboardingRoute = pathname.includes("/onboarding");
     const isUserOnboarded = Boolean(user.profile.is_onboarded);
     
-    // Debug logging
-    console.log('Route check:', { 
-      isOnboardingRoute, 
-      isUserOnboarded, 
-      path: pathname,
-      profile: user.profile
-    });
-    
     // Redirect based on onboarding status
     if (isUserOnboarded && isOnboardingRoute) {
       // Onboarded users shouldn't access onboarding
@@ -57,10 +49,15 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
   }
   return (
     <div className="flex h-screen flex-col md:flex-row">
-      <Sidebar />
-      <div className="flex-1 overflow-auto">
+      {/* Sidebar - only visible on desktop */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col md:w-[calc(100%-15rem)]">
         <Navbar />
-        <main className="container mx-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6">
           <Suspense fallback={<Loading />}>
             {children}
           </Suspense>
