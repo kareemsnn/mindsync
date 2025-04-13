@@ -9,6 +9,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Check, Clock, Send } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+import { Database } from "@/database.types"
+import Loading from "@/app/(protected)/questions/loading"
+
+type AnswerInsert = Database['public']['Tables']['answers']['Insert']
+type AnswerUpdate = Database['public']['Tables']['answers']['Update']
 
 // Mock data for previous weeks
 const previousWeeks = [
@@ -52,7 +58,6 @@ export default function QuestionsPage() {
   const [loading, setLoading] = useState(true)
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [expires_at, setExpires_at] = useState<string>("")
-  const [test] = useState("2025-04-13T16:30:00+00:00")
   const [timeUp, setTimeUp] = useState(false)
   const [theme, setTheme] = useState<string>("General")
 
@@ -82,9 +87,7 @@ export default function QuestionsPage() {
     }
   }
 
-  // Check if time is up
   useEffect(() => {
-    // Check if time is up when expires_at changes or component mounts
     if (expires_at) {
       const targetDate = new Date(expires_at);
       const now = new Date();
@@ -92,13 +95,11 @@ export default function QuestionsPage() {
     }
   }, [expires_at]);
 
-  // Update the time left every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft())
-    }, 60000) // Update every minute
+    }, 60000)
 
-    // Initial calculation
     setTimeLeft(calculateTimeLeft())
 
     return () => clearInterval(timer)
@@ -107,26 +108,22 @@ export default function QuestionsPage() {
   useEffect(() => {
     async function loadQuestions() {
       try {
-        // Fetch questions
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select('*')
-          .order('id', { ascending: true })  // Order by ID ascending to show Question 1 first
+          .order('id', { ascending: true })
         if (questionsError) throw questionsError
         
-        // Get expires_at from the first question (all questions have the same expiration)
         if (questionsData && questionsData.length > 0) {
           const firstQuestion = questionsData[0] as any;
           if (firstQuestion.expires_at) {
             setExpires_at(firstQuestion.expires_at);
           }
-          // Get theme from the first question (all questions have the same theme)
           if (firstQuestion.theme) {
             setTheme(firstQuestion.theme);
           }
         }
 
-        // Fetch user's answers for these questions
         const { data: answersData, error: answersError } = await supabase
           .from('answers')
           .select('*')
@@ -135,19 +132,12 @@ export default function QuestionsPage() {
 
         if (answersError) throw answersError
 
-        // Combine questions with answers
         const questionsWithAnswers = questionsData.map(question => ({
           id: question.id,
           question: question.question,
           created_at: question.created_at,
-          answered: false,
-          answer: undefined,
-          ...answersData?.find(a => a.question_id === question.id && a.user_id === user!.id)
-            ? {
-                answered: true,
-                answer: answersData.find(a => a.question_id === question.id)?.answer
-              }
-            : {}
+          answered: answersData?.some(a => a.question_id === question.id && a.user_id === user!.id) || false,
+          answer: answersData?.find(a => a.question_id === question.id && a.user_id === user!.id)?.answer || undefined
         }))
         
         setQuestions(questionsWithAnswers)
@@ -166,29 +156,47 @@ export default function QuestionsPage() {
   const handleSubmitResponse = async () => {
     if (activeQuestion !== null && response.trim() && user) {
       try {
-        // Insert or update the answer
-        const { error } = await supabase
-          .from('answers')
-          .upsert({
-            question_id: activeQuestion,
-            user_id: user.id,
-            answer: response.trim(),
-            created_at: new Date().toISOString()
-          })
+        const currentQuestion = questions.find(q => q.id === activeQuestion);
+        const answerData: AnswerInsert = {
+          question_id: activeQuestion,
+          user_id: user.id,
+          answer: response.trim(),
+          created_at: new Date().toISOString()
+        };
+        
+        let error;
+        
+        if (currentQuestion?.answered) {
+          const { error: updateError } = await supabase
+            .from('answers')
+            .update({ answer: response.trim() })
+            .eq('question_id', activeQuestion)
+            .eq('user_id', user.id);
+            
+          error = updateError;
+        }
+        
+        if (!currentQuestion?.answered || error) {
+          const { error: insertError } = await supabase
+            .from('answers')
+            .insert(answerData);
+            
+          error = insertError;
+        }
 
-        if (error) throw error
+        if (error) throw error;
 
-        // Update local state
         setQuestions(questions.map(q => 
           q.id === activeQuestion 
             ? { ...q, answered: true, answer: response.trim() } 
             : q
-        ))
-        setActiveQuestion(null)
-        setResponse("")
+        ));
+        setActiveQuestion(null);
+        setResponse("");
+        toast.success(currentQuestion?.answered ? 'Answer updated successfully' : 'Answer submitted successfully');
       } catch (error) {
-        console.error('Error submitting answer:', error)
-        // You might want to show an error message to the user here
+        console.error('Error submitting answer:', error);
+        toast.error('Error submitting answer');
       }
     }
   }
@@ -197,7 +205,7 @@ export default function QuestionsPage() {
   const progress = (answeredCount / questions.length) * 100
 
   if (loading) {
-    return <div>Loading this week's questions...</div>
+    return <Loading />
   }
 
   return (
