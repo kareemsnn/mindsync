@@ -7,24 +7,122 @@ import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MessageCircle, Users } from "lucide-react"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
 
 // Mock data for the dashboard
-const mockWeeklyProgress = 75
 const mockDaysLeft = 2
 const mockActiveGroups = 3
+
+type Question = {
+  id: number
+  question: string
+  created_at: string | null
+  answered: boolean
+  answer?: string
+}
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [theme, setTheme] = useState<string>("General")
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expires_at, setExpires_at] = useState<string>("")
+  const [timeLeft, setTimeLeft] = useState<string>("")
+
+  // Calculate time left
+  const calculateTimeLeft = () => {
+    const targetDate = new Date(expires_at)
+    const now = new Date();
+    const diff = targetDate.getTime() - now.getTime();
+  
+    // If the difference is less than or equal to zero, time is up
+    if (diff <= 0) {
+      return "Time's up for this week's questions";
+    }
+  
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+    if (days > 0) {
+      return `${days} day${days > 1 ? 's' : ''} left to answer`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''} left`;
+    } else {
+      return `${minutes} minute${minutes > 1 ? 's' : ''} left`;
+    }
+  }
+
+  // Fetch theme and questions from Supabase
+  useEffect(() => {
+    async function fetchData() {
+      if (!user) return;
+      
+      try {
+        // Fetch questions
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('questions')
+          .select('*')
+          .order('id', { ascending: true })
+        if (questionsError) throw questionsError
+        
+        // Get expires_at and theme from the first question
+        if (questionsData && questionsData.length > 0) {
+          const firstQuestion = questionsData[0] as any;
+          if (firstQuestion.expires_at) {
+            setExpires_at(firstQuestion.expires_at);
+          }
+          if (firstQuestion.theme) {
+            setTheme(firstQuestion.theme);
+          }
+        }
+
+        // Fetch user's answers for these questions
+        const { data: answersData, error: answersError } = await supabase
+          .from('answers')
+          .select('*')
+          .eq('user_id', user.id)
+          .in('question_id', questionsData.map(q => q.id))
+
+        if (answersError) throw answersError
+
+        // Combine questions with answers
+        const questionsWithAnswers = questionsData.map(question => ({
+          id: question.id,
+          question: question.question,
+          created_at: question.created_at,
+          answered: false,
+          answer: undefined,
+          ...answersData?.find(a => a.question_id === question.id && a.user_id === user.id)
+            ? {
+                answered: true,
+                answer: answersData.find(a => a.question_id === question.id)?.answer
+              }
+            : {}
+        }))
+        
+        setQuestions(questionsWithAnswers)
+        setTimeLeft(calculateTimeLeft());
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [user])
 
   // Update the time every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
+      setTimeLeft(calculateTimeLeft())
     }, 60000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [expires_at])
 
   // Calculate days until Friday (5 is Friday in JavaScript's Date.getDay())
   const getDaysUntilFriday = () => {
@@ -34,6 +132,14 @@ export default function DashboardPage() {
 
   const daysUntilFriday = getDaysUntilFriday()
   const isGroupChatDay = currentTime.getDay() === 5 // Friday
+
+  // Calculate progress for the progress bar
+  const answeredCount = questions.filter(q => q.answered).length
+  const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0
+
+  if (loading) {
+    return <div>Loading dashboard...</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -68,10 +174,12 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Question Responses</span>
-                <span className="text-sm text-muted-foreground">{mockWeeklyProgress}%</span>
+                <span className="text-sm font-medium">
+                  {answeredCount} of {questions.length} questions answered
+                </span>
+                <span className="text-sm text-muted-foreground">{progress.toFixed(0)}%</span>
               </div>
-              <Progress value={mockWeeklyProgress} className="h-2" />
+              <Progress value={progress} className="h-2" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
@@ -81,8 +189,8 @@ export default function DashboardPage() {
                     <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Days Left</p>
-                    <p className="text-2xl font-bold">{mockDaysLeft}</p>
+                    <p className="text-sm font-medium">Time Left</p>
+                    <p className="text-2xl font-bold">{timeLeft.includes("day") ? timeLeft.split(" ")[0] : "< 1d"}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -119,71 +227,27 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>This Week's Questions</CardTitle>
-          <CardDescription>Theme: Technology & Innovation</CardDescription>
+          <CardDescription>Theme: {theme}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-medium">Question 1</h3>
-              <p className="text-muted-foreground">
-                How do you think artificial intelligence will impact your field in the next 5 years?
-              </p>
-              {mockWeeklyProgress >= 25 ? (
-                <div className="bg-muted/50 p-3 rounded-md mt-2">
-                  <p className="text-sm italic">Your response has been submitted.</p>
-                </div>
-              ) : (
-                <Button variant="outline" size="sm" className="mt-2">
-                  Answer Question
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-medium">Question 2</h3>
-              <p className="text-muted-foreground">What emerging technology are you most excited about and why?</p>
-              {mockWeeklyProgress >= 50 ? (
-                <div className="bg-muted/50 p-3 rounded-md mt-2">
-                  <p className="text-sm italic">Your response has been submitted.</p>
-                </div>
-              ) : (
-                <Button variant="outline" size="sm" className="mt-2">
-                  Answer Question
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-medium">Question 3</h3>
-              <p className="text-muted-foreground">
-                How do you balance screen time and digital wellness in your daily life?
-              </p>
-              {mockWeeklyProgress >= 75 ? (
-                <div className="bg-muted/50 p-3 rounded-md mt-2">
-                  <p className="text-sm italic">Your response has been submitted.</p>
-                </div>
-              ) : (
-                <Button variant="outline" size="sm" className="mt-2">
-                  Answer Question
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="font-medium">Question 4</h3>
-              <p className="text-muted-foreground">
-                What technological innovation has had the biggest impact on your life so far?
-              </p>
-              {mockWeeklyProgress >= 100 ? (
-                <div className="bg-muted/50 p-3 rounded-md mt-2">
-                  <p className="text-sm italic">Your response has been submitted.</p>
-                </div>
-              ) : (
-                <Button variant="outline" size="sm" className="mt-2">
-                  Answer Question
-                </Button>
-              )}
-            </div>
+            {questions.slice(0, 4).map((q, index) => (
+              <div key={q.id} className="space-y-2">
+                <h3 className="font-medium">Question {index + 1}</h3>
+                <p className="text-muted-foreground">
+                  {q.question}
+                </p>
+                {q.answered ? (
+                  <div className="bg-muted/50 p-3 rounded-md mt-2">
+                    <p className="text-sm italic">Your response has been submitted.</p>
+                  </div>
+                ) : (
+                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                    <Link href="/questions">Answer Question</Link>
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="mt-6">

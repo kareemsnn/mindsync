@@ -52,8 +52,9 @@ export default function QuestionsPage() {
   const [loading, setLoading] = useState(true)
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [expires_at, setExpires_at] = useState<string>("")
-  const [test] = useState("2025-04-13T02:00:00+00:00")
+  const [test] = useState("2025-04-13T16:30:00+00:00")
   const [timeUp, setTimeUp] = useState(false)
+  const [theme, setTheme] = useState<string>("General")
 
   
   const calculateTimeLeft = () => {
@@ -118,6 +119,10 @@ export default function QuestionsPage() {
           const firstQuestion = questionsData[0] as any;
           if (firstQuestion.expires_at) {
             setExpires_at(firstQuestion.expires_at);
+          }
+          // Get theme from the first question (all questions have the same theme)
+          if (firstQuestion.theme) {
+            setTheme(firstQuestion.theme);
           }
         }
 
@@ -213,7 +218,7 @@ export default function QuestionsPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle>Your Progress</CardTitle>
-              <CardDescription>Theme: General</CardDescription>
+              <CardDescription>Theme: {theme}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
