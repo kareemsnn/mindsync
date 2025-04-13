@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 from contextlib import asynccontextmanager
+from sentence_transformers import SentenceTransformer
 import math
 from huggingface_hub import hf_hub_download, snapshot_download
 
@@ -68,7 +69,7 @@ supabase: Client = create_client(
 )
 
 
-model = SentenceTransformer('all-mpnet-base-v2')
+sentence_model = SentenceTransformer('all-mpnet-base-v2')
 
 
 def process_users(users: List[UserResponses]):
@@ -77,7 +78,7 @@ def process_users(users: List[UserResponses]):
     
     for user in users:
         # Per-user embedding
-        user_embeddings = [model.encode(text) for text in user.list]
+        user_embeddings = [sentence_model.encode(text) for text in user.list]
         avg_embedding = np.mean(user_embeddings, axis=0)  # Average THIS USER's responses
         all_embeddings.append(avg_embedding)
         user_ids.append(user.id)
@@ -117,7 +118,7 @@ async def run_gnn(embeddings: np.ndarray, user_ids: list):  # Add parameters her
         raise HTTPException(status_code=500, detail=str(e))
     
     device = torch.device("cpu")
-    global cached_model
+    cached_model = app.state.cached_model
     if cached_model is None:
         raise HTTPException(status_code=500, detail="Model is not loaded.")
     
