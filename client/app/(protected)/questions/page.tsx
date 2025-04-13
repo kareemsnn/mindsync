@@ -84,10 +84,16 @@ export default function QuestionsPage() {
     isSubmitting
   } = useQuestions(user?.id)
 
+  // Function to normalize response by removing double quotations
+  const normalizeResponse = (text: string): string => {
+    return text.replace(/"/g, '');
+  }
+
   const handleSubmitResponse = async () => {
     if (activeQuestion !== null && response.trim()) {
       const currentQuestion = questions.find(q => q.id === activeQuestion)
-      await submitAnswer(activeQuestion, response, currentQuestion?.answered)
+      const normalizedResponse = normalizeResponse(response.trim());
+      await submitAnswer(activeQuestion, normalizedResponse, currentQuestion?.answered)
       setActiveQuestion(null)
       setResponse("")
     }

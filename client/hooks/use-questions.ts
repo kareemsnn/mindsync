@@ -62,7 +62,6 @@ export const useQuestions = (userId?: string) => {
     queryFn: async () => {
       if (!userId) throw new Error('User ID is required')
 
-      // Get the questions
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
@@ -73,7 +72,6 @@ export const useQuestions = (userId?: string) => {
       let theme = "General"
       let expiryDate = ""
       
-      // Try to get the theme and expiry date from the first question or fdate table
       if (questionsData && questionsData.length > 0) {
         const firstQuestion = questionsData[0]
         if (firstQuestion.theme) {
@@ -81,7 +79,6 @@ export const useQuestions = (userId?: string) => {
         }
       }
       
-      // Fetch the expiration date from fdate table (more reliable than the questions table)
       const { data: fdateData, error: fdateError } = await supabase
         .from('fdate')
         .select('*')
@@ -94,7 +91,6 @@ export const useQuestions = (userId?: string) => {
         expiryDate = fdateData[0].expire_date
       }
       
-      // Get user's answers for these questions
       const { data: answersData, error: answersError } = await supabase
         .from('answers')
         .select('*')
@@ -103,7 +99,6 @@ export const useQuestions = (userId?: string) => {
       
       if (answersError) throw answersError
       
-      // Combine questions with answers
       const questionsWithAnswers = questionsData.map(question => ({
         id: question.id,
         question: question.question,
@@ -113,13 +108,11 @@ export const useQuestions = (userId?: string) => {
         answer: answersData?.find(a => a.question_id === question.id && a.user_id === userId)?.answer || undefined
       }))
       
-      // Calculate progress
       const answeredCount = questionsWithAnswers.filter(q => q.answered).length
       const progress = questionsWithAnswers.length > 0 
         ? (answeredCount / questionsWithAnswers.length) * 100 
         : 0
       
-      // Calculate time left
       const { timeLeft, isExpired } = calculateTimeLeft(expiryDate)
       
       return {
@@ -174,15 +167,76 @@ export const useQuestions = (userId?: string) => {
       
       return { questionId, answer }
     },
-    onSuccess: (result, variables) => {
+    onSuccess: (variables) => {
       queryClient.invalidateQueries({ queryKey: ['questions', userId] })
-      toast.success(variables.isEdit ? 'Answer updated successfully' : 'Answer submitted successfully')
+      toast.success('Answers submitted successfully')
     },
     onError: (error) => {
       console.error('Error submitting answer:', error)
       toast.error('Error submitting answer')
     }
   })
+
+  const classifyAnswersMutation = useMutation({
+    mutationFn: async ({ userId, answers }: { userId: string, answers: { answer: string | undefined }[] }) => {
+      const apiUrl = process.env.NEXT_PUBLIC_HEROKU_API_URL;
+      if (!apiUrl) {
+        throw new Error('API URL is not configured. Please set NEXT_PUBLIC_HEROKU_API_URL.');
+      }
+
+      const response = await fetch(`${apiUrl}/submit-answers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          texts: answers.map(a => ({ answer: a.answer }))
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to parse error response' }));
+        console.error("Classification API Error:", response.status, errorData);
+        throw new Error(errorData.message || 'Failed to submit answers for classification');
+      }
+
+      const data = await response.json();
+      return { status: data.status || 200 };
+    },
+    onSuccess: async (data) => {
+      console.log("Classification successful:", data);
+      toast.success('Answers submitted for classification successfully!');
+    },
+    onError: (error: Error) => {
+      console.error('Error submitting answers for classification:', error);
+      toast.error(`Classification failed: ${error.message}`);
+    }
+  });
+
+  const handleClassification = () => {
+    if (!userId || !data?.questions || data.questions.length === 0) {
+      toast.error("No user or questions data available for classification.");
+      return;
+    }
+    const allAnswered = data.questions.every(q => q.answered);
+    if (!allAnswered) {
+      toast.warning("Please answer all questions before submitting for classification.");
+      return;
+    }
+    if (data.isExpired) {
+      toast.error("Cannot classify answers for expired questions.");
+      return;
+    }
+
+    classifyAnswersMutation.mutate({
+      userId,
+      answers: data.questions.map(q => ({ answer: q.answer }))
+    });
+    
+    toast.info('Processing your answers in the background...');
+    return;
+  };
 
   return {
     questionsData: data,
@@ -196,6 +250,8 @@ export const useQuestions = (userId?: string) => {
     error: error as Error | null,
     submitAnswer: (questionId: number, answer: string, isEdit: boolean = false) => 
       submitAnswer.mutate({ questionId, answer, isEdit }),
-    isSubmitting: submitAnswer.isPending
+    handleClassification,
+    isSubmitting: submitAnswer.isLoading,
+    isClassifying: classifyAnswersMutation.isLoading,
   }
 } 

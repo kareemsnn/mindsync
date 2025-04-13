@@ -26,7 +26,8 @@ import {
   ChartOptions
 } from 'chart.js/auto'
 import { Radar } from 'react-chartjs-2'
-import { useProfile } from "@/hooks/use-profile"
+import { useProfile, PersonalityTraitsVector } from "@/hooks/use-profile"
+import { supabase } from "@/lib/supabase"
 
 // Register Chart.js components
 ChartJS.register(
@@ -38,10 +39,13 @@ ChartJS.register(
   Legend
 )
 
+
 // FIFA-style radar chart component
-const PersonalityRadarChart = ({ traitsVector }: { traitsVector: any }) => {
-  // Check if traitsVector is defined and has the expected structure
+const PersonalityRadarChart = ({ traitsVector }: { traitsVector: PersonalityTraitsVector }) => {
   const results = traitsVector?.personality_results || {};
+  const getTraitValue = (shortKey: string, fullKey: string): number => {
+    return (results[shortKey] !== undefined ? results[shortKey] : results[fullKey]) || 0;
+  };
 
   const data: ChartData<'radar'> = {
     labels: [
@@ -55,11 +59,11 @@ const PersonalityRadarChart = ({ traitsVector }: { traitsVector: any }) => {
       {
         label: 'Personality Profile',
         data: [
-          results.agreeableness || 0,
-          results.conscientiousness || 0,
-          results.extraversion || 0,
-          (results.neuroticism || 0), // Inverted for "Emotional Stability"
-          results.openness || 0,
+          getTraitValue('A', 'agreeableness'),
+          getTraitValue('C', 'conscientiousness'),
+          getTraitValue('E', 'extraversion'),
+          getTraitValue('N', 'neuroticism'),
+          getTraitValue('O', 'openness'),
         ],
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
@@ -192,12 +196,54 @@ export default function ProfilePage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([])
   const [selectedTraits, setSelectedTraits] = useState<string[]>([])
   
+  // State for personality traits vector
+  const [traitsVector, setTraitsVector] = useState<PersonalityTraitsVector | null>(null)
+  
   // State for full name editing
   const [isFullNameModalOpen, setIsFullNameModalOpen] = useState(false)
   const [newFullName, setNewFullName] = useState("")
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const realtimeSubscriptionRef = useRef<any>(null)
+  
+  // Set up realtime subscription to listen for profile changes
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Set up the realtime subscription to profiles table
+    const subscription = supabase
+      .channel('profile-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Realtime profile change received:', payload);
+          
+          // If there's a traits_vector in the payload, update the UI
+          if (payload.new && typeof payload.new === 'object' && 'traits_vector' in payload.new && payload.new.traits_vector) {
+            const updatedTraits = payload.new.traits_vector as PersonalityTraitsVector;
+            setTraitsVector(updatedTraits);
+          }
+        }
+      )
+      .subscribe();
+    
+    // Store the subscription to clean up later
+    realtimeSubscriptionRef.current = subscription;
+    
+    // Clean up the subscription when component unmounts
+    return () => {
+      if (realtimeSubscriptionRef.current) {
+        supabase.removeChannel(realtimeSubscriptionRef.current);
+      }
+    };
+  }, [user?.id]);
   
   // Update state when profile data changes
   useEffect(() => {
@@ -207,8 +253,44 @@ export default function ProfilePage() {
       setFullName(profile.full_name || "")
       setSelectedInterests(profile.interests as string[] || [])
       setSelectedTraits(profile.describe as string[] || [])
+      
+      // If profile already has traits_vector, use it
+      if (profile.traits_vector) {
+        try {
+          // Cast the traits_vector to PersonalityTraitsVector
+          const traitsData = profile.traits_vector as unknown as PersonalityTraitsVector;
+          setTraitsVector(traitsData)
+        } catch (err) {
+          console.error("Error parsing traits_vector:", err)
+        }
+      }
     }
   }, [profile])
+  
+  // Listen for real-time updates to the profile
+  useEffect(() => {
+    if (!user?.id) return
+    
+    const channel = supabase
+      .channel(`profile:${user.id}`)
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          // If there's a traits_vector in the payload, update the UI
+          if (payload.new && typeof payload.new === 'object' && 'traits_vector' in payload.new && payload.new.traits_vector) {
+            const updatedTraits = payload.new.traits_vector as PersonalityTraitsVector;
+            setTraitsVector(updatedTraits)
+            
+            toast.success("Your personality profile has been updated!")
+          }
+        }
+      )
+      .subscribe()
+    
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id])
   
   // Cleanup object URL when component unmounts
   useEffect(() => {
@@ -491,11 +573,33 @@ export default function ProfilePage() {
               <CardDescription>A visual representation of your personality attributes</CardDescription>
             </CardHeader>
             <CardContent>
-              {profile?.traits_vector ? (
-                <PersonalityRadarChart traitsVector={profile.traits_vector} />
+              {(profile?.traits_vector || traitsVector) ? (
+                <>
+                  <PersonalityRadarChart traitsVector={profile?.traits_vector || traitsVector as PersonalityTraitsVector} />
+                  <div className="mt-4 space-y-3 text-sm">
+                    <h4 className="font-medium">OCEAN Personality Model:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-3 rounded-md bg-muted/40">
+                        <span className="font-medium">O - Openness:</span> Appreciation for art, emotion, adventure, imagination, curiosity, and variety of experience.
+                      </div>
+                      <div className="p-3 rounded-md bg-muted/40">
+                        <span className="font-medium">C - Conscientiousness:</span> A tendency to be organized, responsible, self-disciplined, goal-oriented, and dependable.
+                      </div>
+                      <div className="p-3 rounded-md bg-muted/40">
+                        <span className="font-medium">E - Extraversion:</span> Energy, sociability, talkativeness, assertiveness, and high amounts of emotional expressiveness.
+                      </div>
+                      <div className="p-3 rounded-md bg-muted/40">
+                        <span className="font-medium">A - Agreeableness:</span> Attributes such as trust, altruism, kindness, affection, and cooperative behavior.
+                      </div>
+                      <div className="p-3 rounded-md bg-muted/40">
+                        <span className="font-medium">N - Neuroticism:</span> The tendency to experience emotional instability, anxiety, moodiness, irritability, and sadness.
+                      </div>
+                    </div>
+                  </div>
+                </>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full">
-                  <p className="text-muted-foreground">No personality traits added yet.</p>
+                <div className="flex flex-col items-center justify-center h-[400px]">
+                  <p className="text-muted-foreground">No personality data available yet. Complete questions to see your profile.</p>
                 </div>
               )}
             </CardContent>
