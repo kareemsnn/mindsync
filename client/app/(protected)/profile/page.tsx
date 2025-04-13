@@ -14,7 +14,6 @@ import { Check, CheckCircle, MessageSquare, Pencil, Upload, Users, X, Loader2, C
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { supabase } from "@/lib/supabase"
 import { 
   Chart as ChartJS, 
   RadialLinearScale, 
@@ -25,7 +24,7 @@ import {
   Legend,
   ChartData,
   ChartOptions
-} from 'chart.js'
+} from 'chart.js/auto'
 import { Radar } from 'react-chartjs-2'
 
 // Register Chart.js components
@@ -48,7 +47,7 @@ const mockStats = {
 
 
 // FIFA-style radar chart component
-const PersonalityRadarChart = ({ traitsVector }) => {
+const PersonalityRadarChart = ({ traitsVector }: { traitsVector: any }) => {
   // Check if traitsVector is defined and has the expected structure
   const results = traitsVector?.personality_results || {};
 
@@ -190,6 +189,10 @@ export default function ProfilePage() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>(user?.profile?.interests as string[] || [])
   const [selectedTraits, setSelectedTraits] = useState<string[]>(user?.profile?.describe as string[] || [])
   
+  // State for full name editing
+  const [isFullNameModalOpen, setIsFullNameModalOpen] = useState(false)
+  const [newFullName, setNewFullName] = useState("")
+  
   // State for image upload
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -330,6 +333,29 @@ export default function ProfilePage() {
         toast.error("Failed to update personality traits. Please try again.")
       }
     }
+  }
+
+  // Handle saving the full name
+  const handleSaveFullName = async () => {
+    if (user && newFullName.trim()) {
+      try {
+        await updateProfile({
+          full_name: newFullName.trim()
+        })
+        setFullName(newFullName.trim())
+        setIsFullNameModalOpen(false)
+        toast.success("Full name updated successfully!")
+      } catch (error) {
+        console.error("Error updating full name:", error)
+        toast.error("Failed to update full name. Please try again.")
+      }
+    }
+  }
+
+  // Open the full name modal and set the current name as the initial value
+  const handleOpenFullNameModal = () => {
+    setNewFullName(fullName)
+    setIsFullNameModalOpen(true)
   }
 
   // Image upload handler
@@ -597,18 +623,21 @@ export default function ProfilePage() {
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-2xl font-bold">{fullName || displayName}</h2>
                   <p className="text-muted-foreground">{user?.email}</p>
-                  <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
-                    <Badge variant="outline">Member since May 2023</Badge>
-                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Full Name (Read Only) */}
+          {/* Full Name (Editable) */}
           <Card>
             <CardHeader>
-              <CardTitle>Full Name</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Full Name</CardTitle>
+                <Button variant="ghost" size="icon" onClick={handleOpenFullNameModal}>
+                  <Pencil className="h-4 w-4" />
+                  <span className="sr-only">Edit full name</span>
+                </Button>
+              </div>
               <CardDescription>Your full name as displayed to other users</CardDescription>
             </CardHeader>
             <CardContent>
@@ -725,7 +754,9 @@ export default function ProfilePage() {
               {traitsVector ? (
                 <PersonalityRadarChart traitsVector={traitsVector} />
               ) : (
-                <p>Loading personality data...</p>
+                <div className="flex flex-col items-center justify-center h-full">
+                  <p className="text-muted-foreground">No personality traits added yet.</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -882,6 +913,50 @@ export default function ProfilePage() {
               Cancel
             </Button>
             <Button onClick={handleSaveTraits} disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full Name Edit Modal */}
+      <Dialog open={isFullNameModalOpen} onOpenChange={setIsFullNameModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Your Full Name</DialogTitle>
+            <DialogDescription>
+              Update your name as displayed to other users
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-name">Current Name</Label>
+              <Input id="current-name" value={fullName || ""} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-name">New Name</Label>
+              <Input 
+                id="new-name" 
+                value={newFullName} 
+                onChange={(e) => setNewFullName(e.target.value)}
+                placeholder="Enter your new full name"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsFullNameModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveFullName} 
+              disabled={isUpdating || !newFullName.trim() || newFullName.trim() === fullName}
+            >
               {isUpdating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Saving...
