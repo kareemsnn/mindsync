@@ -18,10 +18,26 @@ const previousWeeks = [
     theme: "Personal Growth & Learning",
     date: "May 1 - May 7, 2023",
     questions: [
-      "What skill have you recently learned or are currently learning?",
-      "How do you overcome challenges in your learning process?",
-      "What resources do you find most valuable for self-education?",
-      "How do you apply what you've learned to your daily life?",
+      {
+        id: 1,
+        question: "What skill have you recently learned or are currently learning?",
+        answer: "I've been learning React and Next.js to build modern web applications. The component-based architecture has changed how I think about UI development."
+      },
+      {
+        id: 2,
+        question: "How do you overcome challenges in your learning process?",
+        answer: "I break down complex problems into smaller, manageable pieces and focus on understanding one concept at a time. I also use online communities like Stack Overflow when I get stuck."
+      },
+      {
+        id: 3,
+        question: "What resources do you find most valuable for self-education?",
+        answer: "Documentation, video tutorials, and hands-on projects are my go-to resources. I learn best by building real things rather than just consuming content."
+      },
+      {
+        id: 4,
+        question: "How do you apply what you've learned to your daily life?",
+        answer: "I try to implement new techniques in my work projects and also create personal projects that challenge me to use what I've learned in different contexts."
+      },
     ],
   },
   {
@@ -29,10 +45,26 @@ const previousWeeks = [
     theme: "Work & Productivity",
     date: "April 24 - April 30, 2023",
     questions: [
-      "What productivity techniques work best for you?",
-      "How do you maintain work-life balance?",
-      "What tools or apps are essential to your workflow?",
-      "How do you handle procrastination?",
+      {
+        id: 1,
+        question: "What productivity techniques work best for you?",
+        answer: "The Pomodoro technique and time blocking have significantly improved my focus. I also use the Getting Things Done methodology to organize tasks."
+      },
+      {
+        id: 2,
+        question: "How do you maintain work-life balance?",
+        answer: "I set clear boundaries by having dedicated work hours and turning off notifications after work. I also prioritize regular exercise and family time."
+      },
+      {
+        id: 3,
+        question: "What tools or apps are essential to your workflow?",
+        answer: "Notion for note-taking and project management, VS Code for development, and Slack for communication. I also use Forest app to stay focused."
+      },
+      {
+        id: 4,
+        question: "How do you handle procrastination?",
+        answer: "I use the 5-minute rule - committing to just 5 minutes of work on a task often leads to longer focus periods. I also identify and address the root causes of my procrastination."
+      },
     ],
   },
 ]
@@ -186,18 +218,27 @@ export default function QuestionsPage() {
                 <CardDescription>{week.date}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {week.questions.map((question, index) => (
-                    <div key={index} className="space-y-1">
-                      <h3 className="font-medium">Question {index + 1}</h3>
-                      <p className="text-muted-foreground">{question}</p>
+                    <div key={index} className="space-y-3">
+                      <div className="flex flex-col">
+                        <h3 className="font-medium">Question {index + 1}</h3>
+                        <p className="text-muted-foreground">{question.question}</p>
+                      </div>
+                      
+                      <div className="bg-muted/50 p-4 rounded-md">
+                        <div className="flex items-start gap-2">
+                          <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                          <div>
+                            <p className="font-medium text-sm">Your Response:</p>
+                            <p className="mt-1">{question.answer}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button variant="outline">View Your Responses</Button>
-              </CardFooter>
             </Card>
           ))}
         </TabsContent>
