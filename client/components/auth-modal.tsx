@@ -162,9 +162,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     />
                   </div>
                   <div className="flex justify-end">
-                    <Link href="/forgot-password" className="text-sm text-white/80 hover:text-white hover:underline">
+                    <span className="text-sm text-white/80 hover:text-white hover:underline cursor-not-allowed">
                       Forgot password?
-                    </Link>
+                    </span>
                   </div>
                   <Button 
                     type="submit" 
@@ -277,9 +277,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                       }`}
                     >
                       I agree to the{" "}
-                      <Link href="/terms" className="underline hover:text-white">
+                      <span className="underline hover:text-white cursor-not-allowed">
                         terms and conditions
-                      </Link>
+                      </span>
                     </Label>
                   </div>
                   {termsError && (
