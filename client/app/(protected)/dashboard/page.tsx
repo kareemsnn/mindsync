@@ -7,7 +7,9 @@ import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/contexts/auth-context"
 import { Calendar, Clock, MessageCircle, Users } from "lucide-react"
 import Link from "next/link"
+import { useGroups } from "@/hooks/use-group-data"
 import { supabase } from "@/lib/supabase"
+import Loading from "../loading"
 
 // Mock data for the dashboard
 const mockDaysLeft = 2
@@ -29,6 +31,59 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [expires_at, setExpires_at] = useState<string>("")
   const [timeLeft, setTimeLeft] = useState<string>("")
+  const [newMessagesCount, setNewMessagesCount] = useState(0)
+  
+  // Fetch user's groups
+  const { 
+    activeGroups, 
+    isLoading: isLoadingGroups 
+  } = useGroups(user?.id)
+
+  // Fetch new messages count
+  useEffect(() => {
+    async function fetchNewMessages() {
+      if (!user?.id) return;
+      
+      try {
+        // Get last 24 hours
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+        
+        // Get all groups the user is in
+        const { data: memberData } = await supabase
+          .from('group_members')
+          .select('group_id')
+          .eq('user_id', user.id);
+          
+        if (!memberData || memberData.length === 0) {
+          setNewMessagesCount(0);
+          return;
+        }
+        
+        const groupIds = memberData
+          .map(m => m.group_id)
+          .filter(Boolean);
+          
+        // Count messages in these groups from the last 24 hours
+        const { count, error } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .in('group_id', groupIds)
+          .gt('created_at', oneDayAgo.toISOString());
+          
+        if (error) {
+          console.error('Error fetching new messages count:', error);
+          return;
+        }
+        
+        setNewMessagesCount(count || 0);
+      } catch (error) {
+        console.error('Error fetching new messages:', error);
+      }
+    }
+    
+    fetchNewMessages();
+  }, [user]);
 
   // Calculate time left
   const calculateTimeLeft = () => {
@@ -138,7 +193,7 @@ export default function DashboardPage() {
   const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0
 
   if (loading) {
-    return <div>Loading dashboard...</div>
+    return <Loading />
   }
 
   return (
@@ -202,7 +257,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Active Groups</p>
-                    <p className="text-2xl font-bold">{mockActiveGroups}</p>
+                    <p className="text-2xl font-bold">{activeGroups.length}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -214,7 +269,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">New Messages</p>
-                    <p className="text-2xl font-bold">12</p>
+                    <p className="text-2xl font-bold">{newMessagesCount}</p>
                   </div>
                 </CardContent>
               </Card>
