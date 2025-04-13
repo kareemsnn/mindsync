@@ -13,7 +13,7 @@ Traditional social networking often leads to surface-level connections and fragm
   - **React-Query:** For efficient server state management and data fetching with automatic caching and background updates.
   - **Gemini-Pro:** Google's large language model API for generating icebreakers in new chats
 - **Backend:**
-  - **⚠️ TO ACCESS LATEST SERVER DIRECTORY, GO TO BRANCH AI/ML**
+  - **⚠️ TO ACCESS LATEST SERVER DIRECTORY, GO TO BRANCH AI/ML ⚠️**
   - **Supabase:** As our backend-as-a-service for data management, authentication, and real-time database functionalities.
   - **FastAPI:** To power our custom grouping algorithm and serve as a robust API layer.
   - **HuggingFace:** For accessing pre-trained NLP models to analyze user responses and extract personality traits.
