@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       answers: {
@@ -158,30 +183,36 @@ export type Database = {
           bio: string | null
           describe: string[] | null
           email: string | null
+          full_name: string | null
           id: number
           image_url: string | null
           interests: string[] | null
           is_onboarded: boolean | null
+          traits_vector: Json | null
           user_id: string | null
         }
         Insert: {
           bio?: string | null
           describe?: string[] | null
           email?: string | null
+          full_name?: string | null
           id?: number
           image_url?: string | null
           interests?: string[] | null
           is_onboarded?: boolean | null
+          traits_vector?: Json | null
           user_id?: string | null
         }
         Update: {
           bio?: string | null
           describe?: string[] | null
           email?: string | null
+          full_name?: string | null
           id?: number
           image_url?: string | null
           interests?: string[] | null
           is_onboarded?: boolean | null
+          traits_vector?: Json | null
           user_id?: string | null
         }
         Relationships: []
@@ -424,6 +455,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
