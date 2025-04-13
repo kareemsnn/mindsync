@@ -1,5 +1,3 @@
-# <span style="color: red; font-weight: bold; font-size: larger">⚠️ TO ACCESS LATEST SERVER DIRECTORY, GO TO BRANCH AI/ML ⚠️</span>
-
 # MindSync
 
 ![image](https://github.com/user-attachments/assets/0c986dcb-c45c-4354-b498-7e4897375b48)
@@ -8,8 +6,6 @@
 
 Traditional social networking often leads to surface-level connections and fragmented conversations. MindSync addresses this by facilitating meaningful interactions through a system of weekly themed questions that reveal users' personalities and interests. By grouping individuals based on their responses, MindSync fosters authentic discussions and long-term relationships, combating digital isolation and shallow engagements.
 
-## Relevant Research
-
 ## Libraries Used
 
 - **Frontend:**
@@ -17,6 +13,7 @@ Traditional social networking often leads to surface-level connections and fragm
   - **React-Query:** For efficient server state management and data fetching with automatic caching and background updates.
   - **Gemini-Pro:** Google's large language model API for generating icebreakers in new chats
 - **Backend:**
+  - **⚠️ TO ACCESS LATEST SERVER DIRECTORY, GO TO BRANCH AI/ML**
   - **Supabase:** As our backend-as-a-service for data management, authentication, and real-time database functionalities.
   - **FastAPI:** To power our custom grouping algorithm and serve as a robust API layer.
   - **HuggingFace:** For accessing pre-trained NLP models to analyze user responses and extract personality traits.
